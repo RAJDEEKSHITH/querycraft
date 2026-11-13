@@ -37,3 +37,32 @@ export async function parseSql(sql: string): Promise<ParseOutcome> {
   const { stmts } = result as ParseResult
   return { ok: true, statements: stmts ?? [] }
 }
+
+/**
+ * Schema-qualified tables (`RangeVar` nodes with a schema) anywhere in a parsed
+ * statement, deduplicated, in parse-tree order. CTE references have no schema and
+ * are skipped. Used by retrieval to add the tables of retrieved examples.
+ */
+export function referencedTables(statement: RawStmt): { schema: string; table: string }[] {
+  const seen = new Map<string, { schema: string; table: string }>()
+  const visit = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      node.forEach(visit)
+      return
+    }
+    if (typeof node !== 'object' || node === null) return
+    const entries: [string, unknown][] = Object.entries(node)
+    for (const [key, value] of entries) {
+      if (key === 'RangeVar' && typeof value === 'object' && value !== null) {
+        const schema: unknown = 'schemaname' in value ? value.schemaname : undefined
+        const table: unknown = 'relname' in value ? value.relname : undefined
+        if (typeof schema === 'string' && typeof table === 'string') {
+          seen.set(`${schema}.${table}`, { schema, table })
+        }
+      }
+      visit(value)
+    }
+  }
+  visit(statement)
+  return [...seen.values()]
+}

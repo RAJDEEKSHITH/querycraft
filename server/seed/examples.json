@@ -1,0 +1,126 @@
+[
+  {
+    "question": "How many sales orders are there in total?",
+    "sql": "SELECT count(*) AS order_count FROM sales.salesorderheader"
+  },
+  {
+    "question": "What was the total revenue for each calendar year?",
+    "sql": "SELECT extract(year FROM soh.orderdate) AS order_year, sum(soh.subtotal) AS revenue FROM sales.salesorderheader soh GROUP BY 1 ORDER BY 1"
+  },
+  {
+    "question": "Show revenue by sales territory, highest first.",
+    "sql": "SELECT st.name AS territory, sum(soh.subtotal) AS revenue FROM sales.salesorderheader soh JOIN sales.salesterritory st ON st.territoryid = soh.territoryid GROUP BY st.name ORDER BY revenue DESC"
+  },
+  {
+    "question": "What is the revenue for each sales region (North America, Europe, Pacific)?",
+    "sql": "SELECT st.\"group\" AS region, sum(soh.subtotal) AS revenue FROM sales.salesorderheader soh JOIN sales.salesterritory st ON st.territoryid = soh.territoryid GROUP BY st.\"group\" ORDER BY revenue DESC"
+  },
+  {
+    "question": "Which 10 products sold the most units?",
+    "sql": "SELECT p.name AS product, sum(sod.orderqty) AS units_sold FROM sales.salesorderdetail sod JOIN production.product p ON p.productid = sod.productid GROUP BY p.name ORDER BY units_sold DESC LIMIT 10"
+  },
+  {
+    "question": "How much product revenue did each product category generate?",
+    "sql": "SELECT pc.name AS category, round(sum(sod.orderqty * sod.unitprice * (1 - sod.unitpricediscount)), 2) AS revenue FROM sales.salesorderdetail sod JOIN production.product p ON p.productid = sod.productid JOIN production.productsubcategory ps ON ps.productsubcategoryid = p.productsubcategoryid JOIN production.productcategory pc ON pc.productcategoryid = ps.productcategoryid GROUP BY pc.name ORDER BY revenue DESC"
+  },
+  {
+    "question": "How many customers are individuals and how many are stores?",
+    "sql": "SELECT CASE WHEN c.storeid IS NULL THEN 'individual' ELSE 'store' END AS customer_type, count(*) AS customers FROM sales.customer c GROUP BY 1 ORDER BY 1"
+  },
+  {
+    "question": "How many orders were placed online versus through resellers?",
+    "sql": "SELECT CASE WHEN soh.onlineorderflag THEN 'online' ELSE 'reseller' END AS channel, count(*) AS orders FROM sales.salesorderheader soh GROUP BY 1 ORDER BY 1"
+  },
+  {
+    "question": "What is the average order value of online orders per year?",
+    "sql": "SELECT extract(year FROM soh.orderdate) AS order_year, round(avg(soh.subtotal), 2) AS average_order_value FROM sales.salesorderheader soh WHERE soh.onlineorderflag GROUP BY 1 ORDER BY 1"
+  },
+  {
+    "question": "Show monthly revenue for 2024.",
+    "sql": "SELECT date_trunc('month', soh.orderdate) AS month, sum(soh.subtotal) AS revenue FROM sales.salesorderheader soh WHERE soh.orderdate >= '2024-01-01' AND soh.orderdate < '2025-01-01' GROUP BY 1 ORDER BY 1"
+  },
+  {
+    "question": "Who are the top 5 salespeople by sales year to date?",
+    "sql": "SELECT pp.firstname, pp.lastname, sp.salesytd FROM sales.salesperson sp JOIN person.person pp ON pp.businessentityid = sp.businessentityid ORDER BY sp.salesytd DESC LIMIT 5"
+  },
+  {
+    "question": "How many employees currently work in each department?",
+    "sql": "SELECT d.name AS department, count(*) AS employees FROM humanresources.employeedepartmenthistory edh JOIN humanresources.department d ON d.departmentid = edh.departmentid WHERE edh.enddate IS NULL GROUP BY d.name ORDER BY employees DESC"
+  },
+  {
+    "question": "Which bikes have a list price above 2000?",
+    "sql": "SELECT p.name, p.listprice FROM production.product p JOIN production.productsubcategory ps ON ps.productsubcategoryid = p.productsubcategoryid JOIN production.productcategory pc ON pc.productcategoryid = ps.productcategoryid WHERE pc.name = 'Bikes' AND p.listprice > 2000 ORDER BY p.listprice DESC"
+  },
+  {
+    "question": "How many addresses are there in each country?",
+    "sql": "SELECT cr.name AS country, count(*) AS addresses FROM person.address a JOIN person.stateprovince sp ON sp.stateprovinceid = a.stateprovinceid JOIN person.countryregion cr ON cr.countryregioncode = sp.countryregioncode GROUP BY cr.name ORDER BY addresses DESC"
+  },
+  {
+    "question": "List the preferred vendors with their credit rating.",
+    "sql": "SELECT v.name, v.creditrating FROM purchasing.vendor v WHERE v.preferredvendorstatus ORDER BY v.name"
+  },
+  {
+    "question": "Which 10 vendors received the most purchase order spending?",
+    "sql": "SELECT v.name AS vendor, sum(poh.subtotal) AS spend FROM purchasing.purchaseorderheader poh JOIN purchasing.vendor v ON v.businessentityid = poh.vendorid GROUP BY v.name ORDER BY spend DESC LIMIT 10"
+  },
+  {
+    "question": "Which finished products have never been ordered?",
+    "sql": "SELECT p.productid, p.name FROM production.product p WHERE p.finishedgoodsflag AND NOT EXISTS (SELECT 1 FROM sales.salesorderdetail sod WHERE sod.productid = p.productid) ORDER BY p.name"
+  },
+  {
+    "question": "What discount does each special offer give?",
+    "sql": "SELECT so.description, so.discountpct, so.startdate, so.enddate FROM sales.specialoffer so ORDER BY so.discountpct DESC"
+  },
+  {
+    "question": "How many sales orders used each shipping method?",
+    "sql": "SELECT sm.name AS ship_method, count(*) AS orders FROM sales.salesorderheader soh JOIN purchasing.shipmethod sm ON sm.shipmethodid = soh.shipmethodid GROUP BY sm.name ORDER BY orders DESC"
+  },
+  {
+    "question": "Which reasons do customers give most often for their purchases?",
+    "sql": "SELECT sr.name AS reason, count(*) AS orders FROM sales.salesorderheadersalesreason sohsr JOIN sales.salesreason sr ON sr.salesreasonid = sohsr.salesreasonid GROUP BY sr.name ORDER BY orders DESC"
+  },
+  {
+    "question": "How many units are in stock at each inventory location?",
+    "sql": "SELECT l.name AS location, sum(pi.quantity) AS units FROM production.productinventory pi JOIN production.location l ON l.locationid = pi.locationid GROUP BY l.name ORDER BY units DESC"
+  },
+  {
+    "question": "How many units were scrapped for each scrap reason?",
+    "sql": "SELECT sr.name AS scrap_reason, sum(wo.scrappedqty) AS scrapped_units FROM production.workorder wo JOIN production.scrapreason sr ON sr.scrapreasonid = wo.scrapreasonid GROUP BY sr.name ORDER BY scrapped_units DESC"
+  },
+  {
+    "question": "What is the average review rating of each reviewed product?",
+    "sql": "SELECT p.name AS product, round(avg(pr.rating), 2) AS average_rating, count(*) AS reviews FROM production.productreview pr JOIN production.product p ON p.productid = pr.productid GROUP BY p.name ORDER BY average_rating DESC"
+  },
+  {
+    "question": "What was the average US dollar to euro exchange rate each year?",
+    "sql": "SELECT extract(year FROM cr.currencyratedate) AS rate_year, round(avg(cr.averagerate), 4) AS average_rate FROM sales.currencyrate cr WHERE cr.fromcurrencycode = 'USD' AND cr.tocurrencycode = 'EUR' GROUP BY 1 ORDER BY 1"
+  },
+  {
+    "question": "How many employees were hired each year?",
+    "sql": "SELECT extract(year FROM e.hiredate) AS hire_year, count(*) AS hires FROM humanresources.employee e GROUP BY 1 ORDER BY 1"
+  },
+  {
+    "question": "Which 10 job titles have the highest average vacation hours?",
+    "sql": "SELECT e.jobtitle, round(avg(e.vacationhours), 1) AS average_vacation_hours, count(*) AS employees FROM humanresources.employee e GROUP BY e.jobtitle ORDER BY average_vacation_hours DESC LIMIT 10"
+  },
+  {
+    "question": "What was the revenue in each fiscal year?",
+    "sql": "SELECT extract(year FROM soh.orderdate + interval '6 months') AS fiscal_year, sum(soh.subtotal) AS revenue FROM sales.salesorderheader soh GROUP BY 1 ORDER BY 1"
+  },
+  {
+    "question": "How many active customers do we have?",
+    "sql": "SELECT count(DISTINCT soh.customerid) AS active_customers FROM sales.salesorderheader soh WHERE soh.orderdate > (SELECT max(o.orderdate) FROM sales.salesorderheader o) - interval '12 months'"
+  },
+  {
+    "question": "How many products are there of each color?",
+    "sql": "SELECT coalesce(p.color, 'No color') AS color, count(*) AS products FROM production.product p GROUP BY 1 ORDER BY products DESC"
+  },
+  {
+    "question": "Show the running total of monthly revenue during 2024.",
+    "sql": "SELECT month, revenue, sum(revenue) OVER (ORDER BY month) AS running_revenue FROM (SELECT date_trunc('month', soh.orderdate) AS month, sum(soh.subtotal) AS revenue FROM sales.salesorderheader soh WHERE soh.orderdate >= '2024-01-01' AND soh.orderdate < '2025-01-01' GROUP BY 1) monthly ORDER BY month"
+  },
+  {
+    "question": "Rank salespeople by sales year to date within each territory.",
+    "sql": "SELECT st.name AS territory, pp.firstname, pp.lastname, sp.salesytd, rank() OVER (PARTITION BY st.name ORDER BY sp.salesytd DESC) AS territory_rank FROM sales.salesperson sp JOIN person.person pp ON pp.businessentityid = sp.businessentityid JOIN sales.salesterritory st ON st.territoryid = sp.territoryid ORDER BY st.name, territory_rank"
+  }
+]

@@ -1,0 +1,87 @@
+[
+  {
+    "term": "revenue",
+    "definition": "Sales revenue is the order subtotal: the sum of sales.salesorderheader.subtotal, which excludes tax and freight.",
+    "sqlHint": "sum(soh.subtotal) FROM sales.salesorderheader soh"
+  },
+  {
+    "term": "order total",
+    "definition": "The full amount a customer owes for an order, including tax and freight: sales.salesorderheader.totaldue.",
+    "sqlHint": "sum(soh.totaldue)"
+  },
+  {
+    "term": "product revenue",
+    "definition": "Revenue of individual order lines, used for revenue by product, subcategory or category: quantity times unit price after the line discount.",
+    "sqlHint": "sum(sod.orderqty * sod.unitprice * (1 - sod.unitpricediscount)) FROM sales.salesorderdetail sod"
+  },
+  {
+    "term": "units sold",
+    "definition": "The number of product units ordered: the sum of sales.salesorderdetail.orderqty.",
+    "sqlHint": "sum(sod.orderqty)"
+  },
+  {
+    "term": "average order value",
+    "definition": "The average subtotal per sales order (tax and freight excluded).",
+    "sqlHint": "avg(soh.subtotal)"
+  },
+  {
+    "term": "online order",
+    "definition": "An order the customer placed on the website (sales channel 'online'); orders with the flag off were placed by a sales person for a reseller store.",
+    "sqlHint": "soh.onlineorderflag = true (reseller orders: soh.onlineorderflag = false)"
+  },
+  {
+    "term": "individual customer",
+    "definition": "A customer who is a person buying for themselves: a sales.customer row with no store.",
+    "sqlHint": "c.storeid IS NULL"
+  },
+  {
+    "term": "store customer",
+    "definition": "A reseller customer, i.e. a bike shop that buys from the company: a sales.customer row linked to a store. Also called reseller.",
+    "sqlHint": "c.storeid IS NOT NULL"
+  },
+  {
+    "term": "active customer",
+    "definition": "A customer with at least one order in the 12 months up to the latest order date in the data (the data ends in mid-2025, so the current date is not used).",
+    "sqlHint": "soh.orderdate > (SELECT max(o.orderdate) FROM sales.salesorderheader o) - interval '12 months'"
+  },
+  {
+    "term": "fiscal year",
+    "definition": "The company's fiscal year runs from July 1 to June 30 and is named after the calendar year in which it ends (fiscal year 2025 = July 2024 to June 2025).",
+    "sqlHint": "extract(year FROM soh.orderdate + interval '6 months')"
+  },
+  {
+    "term": "sales region",
+    "definition": "The territory group of a sales territory: North America, Europe or Pacific.",
+    "sqlHint": "st.\"group\" FROM sales.salesterritory st"
+  },
+  {
+    "term": "product category",
+    "definition": "The top level of the product hierarchy (Bikes, Components, Clothing, Accessories). Products link to a subcategory, which links to the category.",
+    "sqlHint": "production.product p JOIN production.productsubcategory ps ON ps.productsubcategoryid = p.productsubcategoryid JOIN production.productcategory pc ON pc.productcategoryid = ps.productcategoryid"
+  },
+  {
+    "term": "discontinued product",
+    "definition": "A product that is no longer sold: it has a sell end date. Products still for sale have none. The discontinueddate column is empty; do not use it.",
+    "sqlHint": "p.sellenddate IS NOT NULL"
+  },
+  {
+    "term": "finished good",
+    "definition": "A product that can be sold to customers, as opposed to a part used only in manufacturing.",
+    "sqlHint": "p.finishedgoodsflag = true"
+  },
+  {
+    "term": "product margin",
+    "definition": "The difference between a product's list price and its standard cost.",
+    "sqlHint": "p.listprice - p.standardcost FROM production.product p WHERE p.finishedgoodsflag"
+  },
+  {
+    "term": "current department",
+    "definition": "The department an employee works in now: the department history row without an end date.",
+    "sqlHint": "humanresources.employeedepartmenthistory edh WHERE edh.enddate IS NULL"
+  },
+  {
+    "term": "preferred vendor",
+    "definition": "A supplier the purchasing department prefers to buy from.",
+    "sqlHint": "v.preferredvendorstatus = true FROM purchasing.vendor v"
+  }
+]

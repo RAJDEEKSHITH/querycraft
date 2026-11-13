@@ -4,8 +4,8 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 // IMPLEMENTATION.md 9.3 rule 1: only safety/executor.ts, safety/cost.ts and the
-// knowledge-base scripts (kb:introspect, kb:index; added in M2) import db/reader.ts.
-const ALLOWED_READER_IMPORTERS = ['safety/executor.ts', 'safety/cost.ts']
+// knowledge-base scripts (kb:introspect, kb:index) import db/reader.ts.
+const ALLOWED_READER_IMPORTERS = ['safety/executor.ts', 'safety/cost.ts', 'kb/cli-introspect.ts', 'kb/cli-index.ts']
 
 const srcRoot = fileURLToPath(new URL('../src', import.meta.url))
 const readerModule = join(srcRoot, 'db', 'reader')

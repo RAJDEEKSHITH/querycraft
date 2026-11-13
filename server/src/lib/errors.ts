@@ -7,6 +7,8 @@ export const errorStatus = {
   RATE_LIMITED: 429,
   INTERNAL_ERROR: 500,
   BUDGET_EXCEEDED: 503,
+  // details.retryAfterSeconds is set when the provider gave a retry delay (M5 sends it as Retry-After).
+  UPSTREAM_RATE_LIMITED: 503,
 } as const
 
 export type ErrorCode = keyof typeof errorStatus

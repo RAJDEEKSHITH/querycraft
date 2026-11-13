@@ -4,13 +4,68 @@ Verified facts only. Read at the start of every session (see `CLAUDE.md` section
 
 ## Handoff
 
-- **Current milestone:** M1 — Safety layer (no LLM)
-- **Current task:** M1 complete; completion report given (2026-11-13). Waiting for the user.
-- **Last completed step:** user decisions 1 and 2 applied (row limit by text splicing; PII/denied-column additions), database rebuilt with `docker compose down -v` + `up -d --build` (approved), migrations re-applied, all checks pass in both packages; `IMPLEMENTATION.md` 10.1, 13.1, 24, D10 and `NOTES.md` updated.
-- **Next step:** when the user says "continue", start M2 with the milestone plan (`CLAUDE.md` section 3; read `IMPLEMENTATION.md` 10.3, 11, 17, 22 M2). Provider free-tier limits must be recorded here before any real `kb:describe` / `kb:index` call (`CLAUDE.md` section 11).
-- **Files changed but unfinished:** none. Nothing committed (the user commits).
+- **Current milestone:** M2 — Knowledge base and retrieval: **complete** (2026-11-13; completion report given).
+- **Current task:** none. Waiting for the user to review and commit the M2 changes.
+- **Last completed step:** real runs done and recorded; `PROGRESS.md` and `NOTES.md` updated; completion report given.
+- **Next step:** the user commits; "continue" starts M3 (Agent graph) with a milestone plan. M3 starts with one approved real Groq call to verify structured output and temperature 0 (M3 acceptance).
+- **Files changed but unfinished:** none.
 - **Pending approvals / questions:** none.
-- **Last command results (2026-11-13, end of M1, real exit codes):** server `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (19 files, 452 tests), `pnpm build` 0; client `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0, `pnpm build` 0. `pnpm db:migrate` after the rebuild: "Found 1 migration(s)", applied to `querycraft_app` and `querycraft_test`.
+- **Last command results (2026-11-13, end of M2, real exit codes):** server `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (34 files, 641 tests), `pnpm build` 0. Client not touched in M2. Real runs: see "M2 real runs" below.
+
+### M2 real runs (2026-11-13, approved by the user)
+
+| Command | Result |
+|---|---|
+| `pnpm kb:introspect` (free) | 67 tables, 451 columns → `seed/schema.json` |
+| `pnpm kb:describe` (Groq `LLM_MODEL`) | exit 0; 67/67 descriptions drafted in 7 requests; `daily_usage` 17,889 LLM tokens (estimate 10k–25k). This run had no logger, so a waited 429 would not have been visible; usage records successful requests only. The user reviewed the drafts; 10 fixes applied (shipmethod used by sales orders too, territory `group` = sales region, neutral wording for email/phone/review tables, jobcandidate, filler removed, businessentity) |
+| `pnpm kb:index` run 1 (Gemini) | 2,683 column values from 21 columns loaded; batch 1 (100 texts) stored; batch 2 (15 texts) got 429 → `UPSTREAM_RATE_LIMITED`, exit 1. Consistent with Gemini counting each text in a batch against the 100 RPM limit. The per-batch save (approved change) kept the first 100 |
+| `pnpm kb:index` run 2 | exit 0; embedded the remaining 15 items; logged "embedding response has no usage metadata; tokens recorded as 0" |
+| `pnpm kb:index` run 3 (idempotence check) | exit 0; embedded 0 items |
+| `pnpm kb:top-tables` (Gemini, 1 request) | exit 0; results below |
+| `daily_usage` after all runs | app: 17,889 LLM tokens / 7 requests; 3 embedding requests; embedding tokens 0 (Gemini returned no usage metadata); cost 0 |
+
+### M2 top tables for 10 sample questions (`pnpm kb:top-tables`, 2026-11-13)
+
+Top 8 by cosine similarity (real Gemini embeddings, 768 dimensions). "Needed" = tables a correct SQL needs.
+
+| # | Question | Top 8 (similarity of #1 → #8) | Needed tables in top 8? |
+|---|---|---|---|
+| 1 | Which customers spent the most in 2024? | customer, store, transactionhistoryarchive, salesorderheader, creditcard, vendor, salesterritory, purchaseorderheader (0.667 → 0.624) | yes (customer #1, salesorderheader #4) |
+| 2 | What is the average freight cost per shipping method? | shipmethod, purchaseorderheader, productvendor, salesorderheader, salesorderdetail, location, currencyrate, product (0.681 → 0.583) | yes (shipmethod #1, both order headers) |
+| 3 | How many products does each vendor supply? | productvendor, vendor, purchaseorderdetail, unitmeasure, product, productdescription, productinventory, purchaseorderheader (0.734 → 0.633) | yes (#1, #2) |
+| 4 | Which employees have the most sick leave hours? | employee, department, employeedepartmenthistory, shift, person, purchaseorderheader, employeepayhistory, jobcandidate (0.661 → 0.583) | yes (employee #1, person #5) |
+| 5 | What are the best-selling product subcategories in Europe? | productsubcategory, productcategory, product, shoppingcartitem, productmodel, specialofferproduct, productproductphoto, productdescription (0.652 → 0.612) | **no**: salesorderdetail, salesorderheader, salesterritory missing (retrieval can still add them through retrieved examples; not measured) |
+| 6 | How much inventory is held for each product? | productinventory, product, location, productvendor, shoppingcartitem, transactionhistory, purchaseorderdetail, transactionhistoryarchive (0.722 → 0.657) | yes (#1, #2) |
+| 7 | Which stores does each sales person manage? | store, salesperson, customer, salesterritory, salesterritoryhistory, personcreditcard, stateprovince, businessentitycontact (0.750 → 0.668) | yes (#1, #2) |
+| 8 | What is the average time between order date and ship date? | salesorderheader, purchaseorderheader, purchaseorderdetail, productvendor, workorder, salesorderdetail, shipmethod, transactionhistory (0.666 → 0.596) | yes (#1) |
+| 9 | Which special offers were used most on orders? | specialoffer, specialofferproduct, salesorderdetail, salesorderheader, salesorderheadersalesreason, transactionhistoryarchive, shipmethod, purchaseorderheader (0.691 → 0.606) | yes (#1, #3) |
+| 10 | How many purchase order items were rejected? | purchaseorderdetail, purchaseorderheader, scrapreason, productvendor, vendor, shipmethod, productreview, transactionhistory (0.707 → 0.585) | yes (#1) |
+
+9 of 10 have every needed table in the top 8. Similarities are compressed (0.58–0.75), so ranking, not an absolute threshold, carries the signal.
+
+### M2 implementation choices (recorded in NOTES.md D44–D53)
+
+The user approved all of these on 2026-11-13, including the changes reported as not explicitly approved: `@google/genai` 3.2.0 instead of 3.3.0 (pnpm exclusion removed), `protobufjs: false` in `allowBuilds`, `fileParallelism: false`, the errors test asserting the exact 8 codes, and the 3-values-per-phrase cap. Also approved: `kb:index` stores embeddings after each batch; seed edits (#26 "10 job titles", product margin for finished goods, `discontinueddate` warning); the 10 description fixes. Added after the first real `kb:index` run: the KB scripts pass a pino logger (`LOG_LEVEL`) to the clients, so retry and usage warnings are visible.
+
+- `vitest.config.ts` `fileParallelism: false`: DB test files share `querycraft_test` and truncate tables.
+- `lib/provider-retry.ts` holds the 429 logic shared by both clients; the total wait across retries is capped by `PROVIDER_MAX_WAIT_MS`.
+- KB rows store `embedding` and `content_hash` together (nullable); hash = sha256(model, dimensions, embedded text); retrieval ignores rows without an embedding; only verified examples are embedded.
+- `kb:index` sync rules: tables upserted by (schema, table), removed when no longer in `schema.json`; seed examples matched by question (new → verified; SQL change keeps status; removed from file → deleted); glossary upserted by term, never deleted; every seed example SQL must pass `validateSql`; every table must have a description.
+- Table comments from the catalog are kept in `seed/schema.json` (`comment`) as `kb:describe` input only; domain types resolved to base types; types abbreviated.
+- Value lookup: 1–3 word phrases starting and ending with a content word; at most 3 values per phrase before the top 10 (otherwise e.g. `Mountain-100…500` pushed out `Northwest` for "Nortwest").
+- Leakage check embeds evaluation questions as documents (same task type as stored examples) so identical text scores 1.0; normalized-text matches need no embedding.
+- `kb:top-tables` embeds the 10 sample questions in one batch request to save quota.
+- Script files: `src/kb/cli-introspect.ts`, `cli-describe.ts`, `cli-index.ts`, `cli-top-tables.ts`; only `cli-introspect.ts` and `cli-index.ts` import `db/reader.ts` (architecture allowlist).
+- `safety/parser.ts` gained `referencedTables()` (retrieval adds tables used by retrieved examples).
+
+### M2 plan decisions (approved by the user, 2026-11-13)
+
+1. Q1: `agent/llm.ts` is built minimally in M2 (plain chat, mock, 429 handling, usage, budget) for `kb:describe`; M3 extends it with structured output.
+2. Q2: `DAILY_TOKEN_BUDGET` counts LLM tokens of sources `app` + `mcp`; embedding tokens are recorded but not counted; the embeddings client also refuses once the budget is used up; KB scripts record usage as `app` and are capped; `eval` is not capped by it (M4 has its own cap). Budget day = UTC date.
+3. Q3/Q4: dependencies `@google/genai` 3.2.0, `@langchain/groq` 1.3.1, `@langchain/core` 1.4.0 (exact pins; brings groq-sdk 1.6.0). `@langchain/core` depends on `zod ^4.6.6`; one zod (4.6.7) in the tree. `@google/genai` 3.3.0 was first installed, but it was published 2026-11-12, inside pnpm's minimum release age, and pnpm silently added a `minimumReleaseAgeExclude` entry for it; the entry was removed and 3.2.0 (2026-11-11) pinned instead. `protobufjs` (via `@google/genai`) has a postinstall that only prints a version-scheme warning; pnpm failed the install with `ERR_PNPM_IGNORED_BUILDS`, so `protobufjs: false` was added to `allowBuilds` in `server/pnpm-workspace.yaml` (same convention as `esbuild: false`). `@google/genai`'s `@modelcontextprotocol/sdk` peer is optional. "Agent skills awaiting approval: drizzle-kit" printed again (not approved).
+4. `@google/genai` retries only when `httpOptions.retryOptions` is set, so SDK retries stay off by leaving it unset. Its `ApiError` exposes only `status` and `message` (= `JSON.stringify` of the provider's error body), no headers. User decision: read `RetryInfo.retryDelay` from `ApiError.message` with a Zod schema; a 429 without a readable delay fails immediately with `UPSTREAM_RATE_LIMITED` (no blind retry).
+5. `EmbedContentResponse.usageMetadata` is mapped by the SDK for the Gemini API (batch path included); token counts come from it. **The real runs showed Gemini returns no usage metadata for these requests**, so embedding tokens are recorded as 0 (a warning is logged).
+6. Q6: migration approved. Note 3 (admin edits vs `kb:index`) is decided in M5.
 
 ### M1 plan decisions (approved by the user, 2026-11-13)
 
@@ -43,6 +98,7 @@ Verified facts only. Read at the start of every session (see `CLAUDE.md` section
 - Server devDependencies: `vitest` 5.1.0, `supertest` 7.3.2, `@types/supertest` 7.2.1, `@types/cors` 2.8.19, `eslint` 10.14.0, `@eslint/js` 10.0.1, `typescript-eslint` 8.72.2, `globals` 17.14.0, `typescript` 7.0.2 → 6.0.3.
 - Client devDependencies: `vitest` 5.1.0.
 - pnpm printed "Agent skills awaiting approval: drizzle-kit"; not approved (not a package, not requested).
+- M2 (approved 2026-11-13): server dependencies `@google/genai` 3.2.0, `@langchain/groq` 1.3.1, `@langchain/core` 1.4.0 (details in M2 plan decisions, item 3).
 - M1 (approved 2026-11-13): server dependency `pgsql-parser` 17.9.17 (brings libpg-query 17.7.3, pgsql-deparser 17.18.5, @pgsql/types 17.6.2; only `parse` is used); server devDependency `@pgsql/types` 17.6.2.
 
 ## Milestones
@@ -51,7 +107,7 @@ Verified facts only. Read at the start of every session (see `CLAUDE.md` section
 |---|---|
 | M0 — Foundation and infrastructure | Complete (2026-11-13; report given) |
 | M1 — Safety layer | Complete (2026-11-13; report given) |
-| M2 — Knowledge base and retrieval | Not started |
+| M2 — Knowledge base and retrieval | Complete (2026-11-13; report given) |
 | M3 — Agent graph | Not started |
 | M4 — Evaluation harness | Not started |
 | M5 — HTTP API and streaming | Not started |
@@ -59,7 +115,22 @@ Verified facts only. Read at the start of every session (see `CLAUDE.md` section
 | M7 — MCP server | Not started |
 | M8 — Finish | Not started |
 
-## Current milestone tasks (M1)
+## Completed milestone tasks (M2)
+
+- [x] 1. Drizzle schema + one migration (both databases): `schema_tables`, `examples`, `glossary_terms`, `column_values`, `daily_usage`; HNSW (cosine) on each `embedding`, GIN trigram on `column_values.value`, `examples(status)`
+- [x] 2. `UPSTREAM_RATE_LIMITED` (503) in `lib/errors.ts`; `lib/cost.ts` (micro-dollar math); `services/usage.service.ts` (atomic `daily_usage` add, token-budget guard)
+- [x] 3. `retrieval/embeddings.ts`: Gemini client + deterministic mock; batching, 429 handling (`PROVIDER_MAX_RETRIES`, `PROVIDER_MAX_WAIT_MS`), usage recording, budget guard
+- [x] 4. `kb:introspect` → `seed/schema.json` (granted tables, columns, types, FKs; PII/denied flags)
+- [x] 5. `kb:describe` → `seed/table-descriptions.json` (real run 2026-11-13; reviewed and fixed with the user)
+- [x] 6. Seed files (approved by the user 2026-11-13 with 3 edits): `examples.json` (≈ 30, each executed through the safety pipeline in a test, reviewed by the user), `glossary.json` (≈ 15), `value-columns.json`
+- [x] 7. `kb:index` (real runs 2026-11-13; stores each batch as it completes; third run embedded 0): embed tables / verified seed examples / glossary in batches, idempotent via `content_hash`; load configured column values with fixed sampling queries
+- [x] 8. Trigram value lookup (`pg_trgm`, similarity ≥ 0.30, top 10)
+- [x] 9. `services/retrieval.service.ts` (11.3 top-k and filters, verified examples only, tables from retrieved examples, max 12 tables)
+- [x] 10. Leakage-check utility (normalized text or cosine ≥ 0.95 vs verified examples)
+- [x] 11. Manual top-tables script for 10 sample questions (real run 2026-11-13; results above)
+- [x] 12. Free-tier limits for both providers recorded here (published figures, not verified from the user's account)
+
+## Completed milestone tasks (M1)
 
 - [x] 1. Parser integration (`safety/parser.ts`: parse, typed AST access; no deparser)
 - [x] 2. `safety/policy.ts` (schemas, denied table/columns, PII columns, function and cast-type allowlists, node-type allowlist)
@@ -146,6 +217,16 @@ Verified facts only. Read at the start of every session (see `CLAUDE.md` section
 - `.claude/settings.json` (fixed 2026-11-13): it was misspelled `setttings.json` and not loaded. Its deny rules are now `Read(**/.env)`, `Read(**/.env.local)`, `Read(**/.env.development)`, `Read(**/.env.production)`, `Read(**/.env.test)`, `Read(**/.env.*.local)`, plus matching `Edit(...)` rules for the same six patterns (Edit rules also cover file writes; `.env.example` stays readable and editable); the npm/yarn/force-push/hard-reset denies and all ask/allow rules are unchanged. It takes effect when the session restarts.
 - `.gitignore` (user change): now ignores only `NOTES.md` among the docs, so `CLAUDE.md`, `IMPLEMENTATION.md`, `PROGRESS.md` are no longer ignored (currently untracked).
 - Uncommitted user changes at 2026-11-13: `.gitignore`, `docker-compose.yaml` → `docker-compose.yml`, `infra/postgres/init/01-roles-and-databases.sh`, `server/.env.example`; replaced `CLAUDE.md` and `IMPLEMENTATION.md`.
+
+## Provider free-tier limits
+
+Published figures given by the user on 2026-11-13. **Published, not verified from the user's account.**
+
+| Provider / model | RPM | RPD | TPM | TPD |
+|---|---|---|---|---|
+| Groq `openai/gpt-oss-120b` | 30 | 1000 | 8000 | 200000 |
+| Groq `openai/gpt-oss-20b` | 30 | 1000 | 8000 | 200000 |
+| Gemini `gemini-embedding-001` | 100 | 1000 | 30000 | not given |
 
 ## Approved spec changes
 

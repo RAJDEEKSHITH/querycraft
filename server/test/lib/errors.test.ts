@@ -10,7 +10,18 @@ describe('AppError', () => {
     expect(new AppError('RATE_LIMITED', 'x').status).toBe(429)
     expect(new AppError('INTERNAL_ERROR', 'x').status).toBe(500)
     expect(new AppError('BUDGET_EXCEEDED', 'x').status).toBe(503)
-    expect(Object.keys(errorStatus)).toHaveLength(7)
+    expect(new AppError('UPSTREAM_RATE_LIMITED', 'x').status).toBe(503)
+    // Exactly the codes of the API contract (IMPLEMENTATION.md section 14).
+    expect(Object.keys(errorStatus).sort()).toEqual([
+      'BUDGET_EXCEEDED',
+      'INTERNAL_ERROR',
+      'INVALID_STATE',
+      'NOT_FOUND',
+      'RATE_LIMITED',
+      'UNAUTHORIZED',
+      'UPSTREAM_RATE_LIMITED',
+      'VALIDATION_ERROR',
+    ])
   })
 
   it('serialises to the contract error shape without the cause', () => {

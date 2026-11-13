@@ -11,7 +11,11 @@
     "lint": "eslint .",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/db/migrate.ts"
+    "db:migrate": "tsx src/db/migrate.ts",
+    "kb:introspect": "tsx src/kb/cli-introspect.ts",
+    "kb:describe": "tsx src/kb/cli-describe.ts",
+    "kb:index": "tsx src/kb/cli-index.ts",
+    "kb:top-tables": "tsx src/kb/cli-top-tables.ts"
   },
   "keywords": [],
   "author": "",
@@ -43,6 +47,9 @@
     "vitest": "^5.1.0"
   },
   "dependencies": {
+    "@google/genai": "3.2.0",
+    "@langchain/core": "1.4.0",
+    "@langchain/groq": "1.3.1",
     "cors": "^2.8.6",
     "dotenv": "^18.0.10",
     "drizzle-orm": "1.0.0-rc.5",

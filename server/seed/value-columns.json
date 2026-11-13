@@ -1,0 +1,23 @@
+[
+  { "schema": "person", "table": "countryregion", "column": "name" },
+  { "schema": "person", "table": "stateprovince", "column": "name" },
+  { "schema": "person", "table": "address", "column": "city" },
+  { "schema": "sales", "table": "salesterritory", "column": "name" },
+  { "schema": "sales", "table": "salesterritory", "column": "group" },
+  { "schema": "sales", "table": "store", "column": "name" },
+  { "schema": "sales", "table": "currency", "column": "name" },
+  { "schema": "sales", "table": "specialoffer", "column": "description" },
+  { "schema": "sales", "table": "salesreason", "column": "name" },
+  { "schema": "production", "table": "productcategory", "column": "name" },
+  { "schema": "production", "table": "productsubcategory", "column": "name" },
+  { "schema": "production", "table": "productmodel", "column": "name" },
+  { "schema": "production", "table": "product", "column": "name" },
+  { "schema": "production", "table": "product", "column": "color" },
+  { "schema": "production", "table": "location", "column": "name" },
+  { "schema": "production", "table": "scrapreason", "column": "name" },
+  { "schema": "purchasing", "table": "vendor", "column": "name" },
+  { "schema": "purchasing", "table": "shipmethod", "column": "name" },
+  { "schema": "humanresources", "table": "department", "column": "name" },
+  { "schema": "humanresources", "table": "department", "column": "groupname" },
+  { "schema": "humanresources", "table": "shift", "column": "name" }
+]

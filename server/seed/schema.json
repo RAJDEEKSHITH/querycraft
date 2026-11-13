@@ -1,0 +1,4441 @@
+{
+  "tables": [
+    {
+      "schema": "humanresources",
+      "table": "department",
+      "comment": "Lookup table containing the departments within the Adventure Works Cycles company.",
+      "columns": [
+        {
+          "name": "departmentid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "groupname",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "humanresources",
+      "table": "employee",
+      "comment": "Employee information such as salary, department, and title.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "person",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "nationalidnumber",
+          "type": "varchar(15)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": true
+        },
+        {
+          "name": "loginid",
+          "type": "varchar(256)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": true
+        },
+        {
+          "name": "jobtitle",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "birthdate",
+          "type": "date",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "maritalstatus",
+          "type": "char(1)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "gender",
+          "type": "char(1)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "hiredate",
+          "type": "date",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "salariedflag",
+          "type": "bool",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "vacationhours",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "sickleavehours",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "currentflag",
+          "type": "bool",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "organizationnode",
+          "type": "varchar",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "humanresources",
+      "table": "employeedepartmenthistory",
+      "comment": "Employee department transfers.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "humanresources",
+            "table": "employee",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "departmentid",
+          "type": "smallint",
+          "nullable": false,
+          "fk": {
+            "schema": "humanresources",
+            "table": "department",
+            "column": "departmentid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "shiftid",
+          "type": "smallint",
+          "nullable": false,
+          "fk": {
+            "schema": "humanresources",
+            "table": "shift",
+            "column": "shiftid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "startdate",
+          "type": "date",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "enddate",
+          "type": "date",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "humanresources",
+      "table": "employeepayhistory",
+      "comment": "Employee pay history.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "humanresources",
+            "table": "employee",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "ratechangedate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rate",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "payfrequency",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "humanresources",
+      "table": "jobcandidate",
+      "comment": "RÃ©sumÃ©s submitted to Human Resources by job applicants.",
+      "columns": [
+        {
+          "name": "jobcandidateid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": true,
+          "fk": {
+            "schema": "humanresources",
+            "table": "employee",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "resume",
+          "type": "xml",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": true
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "humanresources",
+      "table": "shift",
+      "comment": "Work shift lookup table.",
+      "columns": [
+        {
+          "name": "shiftid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "starttime",
+          "type": "time",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "endtime",
+          "type": "time",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "person",
+      "table": "address",
+      "comment": "Street address information for customers, employees, and vendors.",
+      "columns": [
+        {
+          "name": "addressid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "addressline1",
+          "type": "varchar(60)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "addressline2",
+          "type": "varchar(60)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "city",
+          "type": "varchar(30)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "stateprovinceid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "stateprovince",
+            "column": "stateprovinceid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "postalcode",
+          "type": "varchar(15)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "spatiallocation",
+          "type": "bytea",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "person",
+      "table": "addresstype",
+      "comment": "Types of addresses stored in the Address table.",
+      "columns": [
+        {
+          "name": "addresstypeid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "person",
+      "table": "businessentity",
+      "comment": "Source of the ID that connects vendors, customers, and employees with address and contact information.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "person",
+      "table": "businessentityaddress",
+      "comment": "Cross-reference table mapping customers, vendors, and employees to their addresses.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "businessentity",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "addressid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "address",
+            "column": "addressid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "addresstypeid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "addresstype",
+            "column": "addresstypeid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "person",
+      "table": "businessentitycontact",
+      "comment": "Cross-reference table mapping stores, vendors, and employees to people",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "businessentity",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "personid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "person",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "contacttypeid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "contacttype",
+            "column": "contacttypeid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "person",
+      "table": "contacttype",
+      "comment": "Lookup table containing the types of business entity contacts.",
+      "columns": [
+        {
+          "name": "contacttypeid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "person",
+      "table": "countryregion",
+      "comment": "Lookup table containing the ISO standard codes for countries and regions.",
+      "columns": [
+        {
+          "name": "countryregioncode",
+          "type": "varchar(3)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "person",
+      "table": "emailaddress",
+      "comment": "Where to send a person email.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "person",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "emailaddressid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "emailaddress",
+          "type": "varchar(50)",
+          "nullable": true,
+          "fk": null,
+          "pii": "email",
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "person",
+      "table": "person",
+      "comment": "Human beings involved with AdventureWorks: employees, customer contacts, and vendor contacts.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "businessentity",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "persontype",
+          "type": "char(2)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "namestyle",
+          "type": "bool",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "title",
+          "type": "varchar(8)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "firstname",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "middlename",
+          "type": "varchar(50)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "lastname",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "suffix",
+          "type": "varchar(10)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "emailpromotion",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "additionalcontactinfo",
+          "type": "xml",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": true
+        },
+        {
+          "name": "demographics",
+          "type": "xml",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "person",
+      "table": "personphone",
+      "comment": "Telephone number and type of a person.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "person",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "phonenumber",
+          "type": "varchar(25)",
+          "nullable": false,
+          "fk": null,
+          "pii": "phone",
+          "denied": false
+        },
+        {
+          "name": "phonenumbertypeid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "phonenumbertype",
+            "column": "phonenumbertypeid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "person",
+      "table": "phonenumbertype",
+      "comment": "Type of phone number of a person.",
+      "columns": [
+        {
+          "name": "phonenumbertypeid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "person",
+      "table": "stateprovince",
+      "comment": "State and province lookup table.",
+      "columns": [
+        {
+          "name": "stateprovinceid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "stateprovincecode",
+          "type": "char(3)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "countryregioncode",
+          "type": "varchar(3)",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "countryregion",
+            "column": "countryregioncode"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "isonlystateprovinceflag",
+          "type": "bool",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "territoryid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "salesterritory",
+            "column": "territoryid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "billofmaterials",
+      "comment": "Items required to make bicycles and bicycle subassemblies. It identifies the heirarchical relationship between a parent product and its components.",
+      "columns": [
+        {
+          "name": "billofmaterialsid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productassemblyid",
+          "type": "int",
+          "nullable": true,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "componentid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "startdate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "enddate",
+          "type": "timestamp",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "unitmeasurecode",
+          "type": "char(3)",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "unitmeasure",
+            "column": "unitmeasurecode"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "bomlevel",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "perassemblyqty",
+          "type": "numeric(8,2)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "culture",
+      "comment": "Lookup table containing the languages in which some AdventureWorks data is stored.",
+      "columns": [
+        {
+          "name": "cultureid",
+          "type": "char(6)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "document",
+      "comment": "Product maintenance documents.",
+      "columns": [
+        {
+          "name": "title",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "owner",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "humanresources",
+            "table": "employee",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "folderflag",
+          "type": "bool",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "filename",
+          "type": "varchar(400)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "fileextension",
+          "type": "varchar(8)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "revision",
+          "type": "char(5)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "changenumber",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "status",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "documentsummary",
+          "type": "text",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "document",
+          "type": "bytea",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "documentnode",
+          "type": "varchar",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "illustration",
+      "comment": "Bicycle assembly diagrams.",
+      "columns": [
+        {
+          "name": "illustrationid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "diagram",
+          "type": "xml",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "location",
+      "comment": "Product inventory and manufacturing locations.",
+      "columns": [
+        {
+          "name": "locationid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "costrate",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "availability",
+          "type": "numeric(8,2)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "product",
+      "comment": "Products sold or used in the manfacturing of sold products.",
+      "columns": [
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productnumber",
+          "type": "varchar(25)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "makeflag",
+          "type": "bool",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "finishedgoodsflag",
+          "type": "bool",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "color",
+          "type": "varchar(15)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "safetystocklevel",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "reorderpoint",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "standardcost",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "listprice",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "size",
+          "type": "varchar(5)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "sizeunitmeasurecode",
+          "type": "char(3)",
+          "nullable": true,
+          "fk": {
+            "schema": "production",
+            "table": "unitmeasure",
+            "column": "unitmeasurecode"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "weightunitmeasurecode",
+          "type": "char(3)",
+          "nullable": true,
+          "fk": {
+            "schema": "production",
+            "table": "unitmeasure",
+            "column": "unitmeasurecode"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "weight",
+          "type": "numeric(8,2)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "daystomanufacture",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productline",
+          "type": "char(2)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "class",
+          "type": "char(2)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "style",
+          "type": "char(2)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productsubcategoryid",
+          "type": "int",
+          "nullable": true,
+          "fk": {
+            "schema": "production",
+            "table": "productsubcategory",
+            "column": "productsubcategoryid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productmodelid",
+          "type": "int",
+          "nullable": true,
+          "fk": {
+            "schema": "production",
+            "table": "productmodel",
+            "column": "productmodelid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "sellstartdate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "sellenddate",
+          "type": "timestamp",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "discontinueddate",
+          "type": "timestamp",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "productcategory",
+      "comment": "High-level product categorization.",
+      "columns": [
+        {
+          "name": "productcategoryid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "productcosthistory",
+      "comment": "Changes in the cost of a product over time.",
+      "columns": [
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "startdate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "enddate",
+          "type": "timestamp",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "standardcost",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "productdescription",
+      "comment": "Product descriptions in several languages.",
+      "columns": [
+        {
+          "name": "productdescriptionid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "description",
+          "type": "varchar(400)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "productdocument",
+      "comment": "Cross-reference table mapping products to related product documents.",
+      "columns": [
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "documentnode",
+          "type": "varchar",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "document",
+            "column": "documentnode"
+          },
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "productinventory",
+      "comment": "Product inventory information.",
+      "columns": [
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "locationid",
+          "type": "smallint",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "location",
+            "column": "locationid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "shelf",
+          "type": "varchar(10)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "bin",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "quantity",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "productlistpricehistory",
+      "comment": "Changes in the list price of a product over time.",
+      "columns": [
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "startdate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "enddate",
+          "type": "timestamp",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "listprice",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "productmodel",
+      "comment": "Product model classification.",
+      "columns": [
+        {
+          "name": "productmodelid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "catalogdescription",
+          "type": "xml",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "instructions",
+          "type": "xml",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "productmodelillustration",
+      "comment": "Cross-reference table mapping product models and illustrations.",
+      "columns": [
+        {
+          "name": "productmodelid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "productmodel",
+            "column": "productmodelid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "illustrationid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "illustration",
+            "column": "illustrationid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "productmodelproductdescriptionculture",
+      "comment": "Cross-reference table mapping product descriptions and the language the description is written in.",
+      "columns": [
+        {
+          "name": "productmodelid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "productmodel",
+            "column": "productmodelid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productdescriptionid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "productdescription",
+            "column": "productdescriptionid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "cultureid",
+          "type": "char(6)",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "culture",
+            "column": "cultureid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "productphoto",
+      "comment": "Product images.",
+      "columns": [
+        {
+          "name": "productphotoid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "thumbnailphoto",
+          "type": "bytea",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "thumbnailphotofilename",
+          "type": "varchar(50)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "largephoto",
+          "type": "bytea",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "largephotofilename",
+          "type": "varchar(50)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "productproductphoto",
+      "comment": "Cross-reference table mapping products and product photos.",
+      "columns": [
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productphotoid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "productphoto",
+            "column": "productphotoid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "primary",
+          "type": "bool",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "productreview",
+      "comment": "Customer reviews of products they have purchased.",
+      "columns": [
+        {
+          "name": "productreviewid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "reviewername",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "reviewdate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "emailaddress",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": "email",
+          "denied": false
+        },
+        {
+          "name": "rating",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "comments",
+          "type": "varchar(3850)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "productsubcategory",
+      "comment": "Product subcategories. See ProductCategory table.",
+      "columns": [
+        {
+          "name": "productsubcategoryid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productcategoryid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "productcategory",
+            "column": "productcategoryid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "scrapreason",
+      "comment": "Manufacturing failure reasons lookup table.",
+      "columns": [
+        {
+          "name": "scrapreasonid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "transactionhistory",
+      "comment": "Record of each purchase order, sales order, or work order transaction year to date.",
+      "columns": [
+        {
+          "name": "transactionid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "referenceorderid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "referenceorderlineid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "transactiondate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "transactiontype",
+          "type": "char(1)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "quantity",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "actualcost",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "transactionhistoryarchive",
+      "comment": "Transactions for previous years.",
+      "columns": [
+        {
+          "name": "transactionid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "referenceorderid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "referenceorderlineid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "transactiondate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "transactiontype",
+          "type": "char(1)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "quantity",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "actualcost",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "unitmeasure",
+      "comment": "Unit of measure lookup table.",
+      "columns": [
+        {
+          "name": "unitmeasurecode",
+          "type": "char(3)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "workorder",
+      "comment": "Manufacturing work orders.",
+      "columns": [
+        {
+          "name": "workorderid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "orderqty",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "scrappedqty",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "startdate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "enddate",
+          "type": "timestamp",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "duedate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "scrapreasonid",
+          "type": "smallint",
+          "nullable": true,
+          "fk": {
+            "schema": "production",
+            "table": "scrapreason",
+            "column": "scrapreasonid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "production",
+      "table": "workorderrouting",
+      "comment": "Work order details.",
+      "columns": [
+        {
+          "name": "workorderid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "workorder",
+            "column": "workorderid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "operationsequence",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "locationid",
+          "type": "smallint",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "location",
+            "column": "locationid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "scheduledstartdate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "scheduledenddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "actualstartdate",
+          "type": "timestamp",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "actualenddate",
+          "type": "timestamp",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "actualresourcehrs",
+          "type": "numeric(9,4)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "plannedcost",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "actualcost",
+          "type": "numeric",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "purchasing",
+      "table": "productvendor",
+      "comment": "Cross-reference table mapping vendors with the products they supply.",
+      "columns": [
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "purchasing",
+            "table": "vendor",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "averageleadtime",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "standardprice",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "lastreceiptcost",
+          "type": "numeric",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "lastreceiptdate",
+          "type": "timestamp",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "minorderqty",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "maxorderqty",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "onorderqty",
+          "type": "int",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "unitmeasurecode",
+          "type": "char(3)",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "unitmeasure",
+            "column": "unitmeasurecode"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "purchasing",
+      "table": "purchaseorderdetail",
+      "comment": "Individual products associated with a specific purchase order. See PurchaseOrderHeader.",
+      "columns": [
+        {
+          "name": "purchaseorderid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "purchasing",
+            "table": "purchaseorderheader",
+            "column": "purchaseorderid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "purchaseorderdetailid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "duedate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "orderqty",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "unitprice",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "receivedqty",
+          "type": "numeric(8,2)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rejectedqty",
+          "type": "numeric(8,2)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "purchasing",
+      "table": "purchaseorderheader",
+      "comment": "General purchase order information. See PurchaseOrderDetail.",
+      "columns": [
+        {
+          "name": "purchaseorderid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "revisionnumber",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "status",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "employeeid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "humanresources",
+            "table": "employee",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "vendorid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "purchasing",
+            "table": "vendor",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "shipmethodid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "purchasing",
+            "table": "shipmethod",
+            "column": "shipmethodid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "orderdate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "shipdate",
+          "type": "timestamp",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "subtotal",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "taxamt",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "freight",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "purchasing",
+      "table": "shipmethod",
+      "comment": "Shipping company lookup table.",
+      "columns": [
+        {
+          "name": "shipmethodid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "shipbase",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "shiprate",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "purchasing",
+      "table": "vendor",
+      "comment": "Companies from whom Adventure Works Cycles purchases parts or other goods.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "businessentity",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "accountnumber",
+          "type": "varchar(15)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "creditrating",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "preferredvendorstatus",
+          "type": "bool",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "activeflag",
+          "type": "bool",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "purchasingwebserviceurl",
+          "type": "varchar(1024)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "countryregioncurrency",
+      "comment": "Cross-reference table mapping ISO currency codes to a country or region.",
+      "columns": [
+        {
+          "name": "countryregioncode",
+          "type": "varchar(3)",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "countryregion",
+            "column": "countryregioncode"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "currencycode",
+          "type": "char(3)",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "currency",
+            "column": "currencycode"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "creditcard",
+      "comment": "Customer credit card information.",
+      "columns": [
+        {
+          "name": "creditcardid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "cardtype",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "cardnumber",
+          "type": "varchar(25)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": true
+        },
+        {
+          "name": "expmonth",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "expyear",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "currency",
+      "comment": "Lookup table containing standard ISO currencies.",
+      "columns": [
+        {
+          "name": "currencycode",
+          "type": "char(3)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "currencyrate",
+      "comment": "Currency exchange rates.",
+      "columns": [
+        {
+          "name": "currencyrateid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "currencyratedate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "fromcurrencycode",
+          "type": "char(3)",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "currency",
+            "column": "currencycode"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "tocurrencycode",
+          "type": "char(3)",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "currency",
+            "column": "currencycode"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "averagerate",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "endofdayrate",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "customer",
+      "comment": "Current customer information. Also see the Person and Store tables.",
+      "columns": [
+        {
+          "name": "customerid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "personid",
+          "type": "int",
+          "nullable": true,
+          "fk": {
+            "schema": "person",
+            "table": "person",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "storeid",
+          "type": "int",
+          "nullable": true,
+          "fk": {
+            "schema": "sales",
+            "table": "store",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "territoryid",
+          "type": "int",
+          "nullable": true,
+          "fk": {
+            "schema": "sales",
+            "table": "salesterritory",
+            "column": "territoryid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "personcreditcard",
+      "comment": "Cross-reference table mapping people to their credit card information in the CreditCard table.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "person",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "creditcardid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "creditcard",
+            "column": "creditcardid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "salesorderdetail",
+      "comment": "Individual products associated with a specific sales order. See SalesOrderHeader.",
+      "columns": [
+        {
+          "name": "salesorderid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "salesorderheader",
+            "column": "salesorderid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "salesorderdetailid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "carriertrackingnumber",
+          "type": "varchar(25)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "orderqty",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "specialofferproduct",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "specialofferid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "specialofferproduct",
+            "column": "specialofferid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "unitprice",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "unitpricediscount",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "salesorderheader",
+      "comment": "General sales order information.",
+      "columns": [
+        {
+          "name": "salesorderid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "revisionnumber",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "orderdate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "duedate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "shipdate",
+          "type": "timestamp",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "status",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "onlineorderflag",
+          "type": "bool",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "purchaseordernumber",
+          "type": "varchar(25)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "accountnumber",
+          "type": "varchar(15)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "customerid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "customer",
+            "column": "customerid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "salespersonid",
+          "type": "int",
+          "nullable": true,
+          "fk": {
+            "schema": "sales",
+            "table": "salesperson",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "territoryid",
+          "type": "int",
+          "nullable": true,
+          "fk": {
+            "schema": "sales",
+            "table": "salesterritory",
+            "column": "territoryid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "billtoaddressid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "address",
+            "column": "addressid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "shiptoaddressid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "address",
+            "column": "addressid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "shipmethodid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "purchasing",
+            "table": "shipmethod",
+            "column": "shipmethodid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "creditcardid",
+          "type": "int",
+          "nullable": true,
+          "fk": {
+            "schema": "sales",
+            "table": "creditcard",
+            "column": "creditcardid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "creditcardapprovalcode",
+          "type": "varchar(15)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "currencyrateid",
+          "type": "int",
+          "nullable": true,
+          "fk": {
+            "schema": "sales",
+            "table": "currencyrate",
+            "column": "currencyrateid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "subtotal",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "taxamt",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "freight",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "totaldue",
+          "type": "numeric",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "comment",
+          "type": "varchar(128)",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "salesorderheadersalesreason",
+      "comment": "Cross-reference table mapping sales orders to sales reason codes.",
+      "columns": [
+        {
+          "name": "salesorderid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "salesorderheader",
+            "column": "salesorderid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "salesreasonid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "salesreason",
+            "column": "salesreasonid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "salesperson",
+      "comment": "Sales representative current information.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "humanresources",
+            "table": "employee",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "territoryid",
+          "type": "int",
+          "nullable": true,
+          "fk": {
+            "schema": "sales",
+            "table": "salesterritory",
+            "column": "territoryid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "salesquota",
+          "type": "numeric",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "bonus",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "commissionpct",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "salesytd",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "saleslastyear",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "salespersonquotahistory",
+      "comment": "Sales performance tracking.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "salesperson",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "quotadate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "salesquota",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "salesreason",
+      "comment": "Lookup table of customer purchase reasons.",
+      "columns": [
+        {
+          "name": "salesreasonid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "reasontype",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "salestaxrate",
+      "comment": "Tax rate lookup table.",
+      "columns": [
+        {
+          "name": "salestaxrateid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "stateprovinceid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "stateprovince",
+            "column": "stateprovinceid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "taxtype",
+          "type": "smallint",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "taxrate",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "salesterritory",
+      "comment": "Sales territory lookup table.",
+      "columns": [
+        {
+          "name": "territoryid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "countryregioncode",
+          "type": "varchar(3)",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "countryregion",
+            "column": "countryregioncode"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "group",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "salesytd",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "saleslastyear",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "costytd",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "costlastyear",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "salesterritoryhistory",
+      "comment": "Sales representative transfers to other sales territories.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "salesperson",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "territoryid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "salesterritory",
+            "column": "territoryid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "startdate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "enddate",
+          "type": "timestamp",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "shoppingcartitem",
+      "comment": "Contains online customer orders until the order is submitted or cancelled.",
+      "columns": [
+        {
+          "name": "shoppingcartitemid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "shoppingcartid",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "quantity",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "datecreated",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "specialoffer",
+      "comment": "Sale discounts lookup table.",
+      "columns": [
+        {
+          "name": "specialofferid",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "description",
+          "type": "varchar(255)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "discountpct",
+          "type": "numeric",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "type",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "category",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "startdate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "enddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "minqty",
+          "type": "int",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "maxqty",
+          "type": "int",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "specialofferproduct",
+      "comment": "Cross-reference table mapping products to special offer discounts.",
+      "columns": [
+        {
+          "name": "specialofferid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "sales",
+            "table": "specialoffer",
+            "column": "specialofferid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "productid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "production",
+            "table": "product",
+            "column": "productid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    },
+    {
+      "schema": "sales",
+      "table": "store",
+      "comment": "Customers (resellers) of Adventure Works products.",
+      "columns": [
+        {
+          "name": "businessentityid",
+          "type": "int",
+          "nullable": false,
+          "fk": {
+            "schema": "person",
+            "table": "businessentity",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(50)",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "salespersonid",
+          "type": "int",
+          "nullable": true,
+          "fk": {
+            "schema": "sales",
+            "table": "salesperson",
+            "column": "businessentityid"
+          },
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "demographics",
+          "type": "xml",
+          "nullable": true,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "rowguid",
+          "type": "uuid",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        },
+        {
+          "name": "modifieddate",
+          "type": "timestamp",
+          "nullable": false,
+          "fk": null,
+          "pii": null,
+          "denied": false
+        }
+      ]
+    }
+  ]
+}
