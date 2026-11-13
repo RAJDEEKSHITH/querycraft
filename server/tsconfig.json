@@ -2,8 +2,9 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
-    "rootDir": "./src",
-    "outDir": "./dist",
+    // This file is used for typechecking src, tests and configs (no output).
+    // tsconfig.build.json compiles src/ to dist/.
+    "noEmit": true,
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
@@ -34,13 +35,12 @@
 
     // Recommended Options
     "strict": true,
-    "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "src/db/learn.schema.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "drizzle.config.ts", "vitest.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

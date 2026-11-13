@@ -24,6 +24,7 @@ SQL
 for db in querycraft_app querycraft_test; do
   psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$db" <<'SQL'
 CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT ALL ON SCHEMA public TO qc_app;
 ALTER SCHEMA public OWNER TO qc_app;

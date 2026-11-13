@@ -21,6 +21,3 @@ server/evals/reports/*.json
 .idea/
 
 NOTES.md
-IMPLEMENTATION.md
-CLAUDE.md
-PROGRESS.md
