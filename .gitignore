@@ -1,0 +1,26 @@
+# Dependencies and builds
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Environment files (only .env.example files are committed)
+.env
+.env.*
+!.env.example
+
+# Evaluation raw outputs (REPORT.md is committed)
+server/evals/reports/*.json
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+NOTES.md
+IMPLEMENTATION.md
+CLAUDE.md
+PROGRESS.md
