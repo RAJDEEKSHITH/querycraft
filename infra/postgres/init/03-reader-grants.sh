@@ -3,6 +3,8 @@
 # Must stay consistent with server/src/safety/policy.ts (IMPLEMENTATION.md sections 10.1, 13.1, 24).
 #  - Base tables only (views run with their owner's privileges and could expose denied columns).
 #  - person.password: no access.
+#  - Denied columns: sales.creditcard.cardnumber, humanresources.employee.nationalidnumber
+#    and .loginid, person.person.additionalcontactinfo, humanresources.jobcandidate.resume.
 #  - Tables with denied columns get column-level SELECT on the other columns only,
 #    because a column REVOKE cannot narrow a table-level GRANT.
 set -euo pipefail
@@ -41,6 +43,18 @@ BEGIN
       WHERE table_schema = 'humanresources' AND table_name = 'employee'
         AND column_name NOT IN ('nationalidnumber', 'loginid');
       EXECUTE format('GRANT SELECT (%s) ON humanresources.employee TO qc_reader', cols);
+    ELSIF t.table_schema = 'person' AND t.table_name = 'person' THEN
+      SELECT string_agg(quote_ident(column_name), ', ') INTO cols
+      FROM information_schema.columns
+      WHERE table_schema = 'person' AND table_name = 'person'
+        AND column_name NOT IN ('additionalcontactinfo');
+      EXECUTE format('GRANT SELECT (%s) ON person.person TO qc_reader', cols);
+    ELSIF t.table_schema = 'humanresources' AND t.table_name = 'jobcandidate' THEN
+      SELECT string_agg(quote_ident(column_name), ', ') INTO cols
+      FROM information_schema.columns
+      WHERE table_schema = 'humanresources' AND table_name = 'jobcandidate'
+        AND column_name NOT IN ('resume');
+      EXECUTE format('GRANT SELECT (%s) ON humanresources.jobcandidate TO qc_reader', cols);
     ELSE
       EXECUTE format('GRANT SELECT ON %I.%I TO qc_reader', t.table_schema, t.table_name);
     END IF;

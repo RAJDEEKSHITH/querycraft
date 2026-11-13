@@ -252,7 +252,7 @@ One PostgreSQL server (section 24), three databases:
 - `USAGE` on schemas `sales`, `production`, `person`, `humanresources`, `purchasing` only.
 - `SELECT` on **base tables only**, not views (views run with their owner's privileges and could expose denied columns).
 - No privileges on `person.password`.
-- Tables with denied columns get **column-level** `SELECT` on their other columns only (a table-level grant cannot be narrowed by a column revoke): `sales.creditcard` without `cardnumber`; `humanresources.employee` without `nationalidnumber` and `loginid`.
+- Tables with denied columns get **column-level** `SELECT` on their other columns only (a table-level grant cannot be narrowed by a column revoke): `sales.creditcard` without `cardnumber`; `humanresources.employee` without `nationalidnumber` and `loginid`; `person.person` without `additionalcontactinfo`; `humanresources.jobcandidate` without `resume`. (The two XML columns hold contact data — email, phone, address — that cannot be masked, so they are denied.)
 - Role defaults: `default_transaction_read_only = on`, `statement_timeout = 5s`, `idle_in_transaction_session_timeout = 10s`.
 - No `CREATE` anywhere; `PUBLIC` has no privileges on `adventureworks` or its `public` schema.
 
@@ -415,28 +415,32 @@ Layer 1 (input guard) is a usability check, not a security layer.
 
 ### 13.1 Layer 2 — parse and policy (`safety/validate.ts`, `safety/policy.ts`)
 
-Parse with a real Postgres parser. Each rule has a stable id recorded in the audit log:
+Parse with a real Postgres parser. Each rule has a stable id recorded in the audit log. When a query breaks several rules, the rule that comes first in this table is reported:
 
 | Rule id | Rejects |
 |---|---|
 | `PARSE_ERROR` | SQL that does not parse (retryable) |
 | `MULTIPLE_STATEMENTS` | More than one statement |
-| `NOT_SELECT` | Anything but a plain `SELECT` (DML, DDL, `COPY`, `SET`, `DO`, `CALL`, `EXPLAIN`, transaction control, `LISTEN`/`NOTIFY`, …) |
+| `NOT_SELECT` | Anything but a plain `SELECT` (DML, DDL, `COPY`, `SET`, `DO`, `CALL`, `EXPLAIN`, transaction control, `LISTEN`/`NOTIFY`, …), and any parse-tree node type that is not on the node-type allowlist and is not function-like |
 | `DATA_MODIFYING_CTE` | `WITH` containing `INSERT`/`UPDATE`/`DELETE`/`MERGE` |
 | `SELECT_INTO` | `SELECT … INTO` |
 | `LOCKING_CLAUSE` | `FOR UPDATE` / `FOR SHARE` and variants |
 | `UNQUALIFIED_TABLE` | Table references without a schema (CTE names excepted) |
 | `SCHEMA_NOT_ALLOWED` | Schemas outside the allowlist (including `pg_catalog`, `information_schema`, `public`) |
 | `TABLE_DENIED` | `person.password` |
-| `COLUMN_DENIED` | Denied columns anywhere in the query |
-| `PII_IN_EXPRESSION` | PII columns inside an expression in the select list (they may only be selected directly so masking applies) |
-| `FUNCTION_NOT_ALLOWED` | Any function not on the allowlist |
+| `COLUMN_DENIED` | A denied column name anywhere in the query, matched by column name whatever the qualifier; `*`, `t.*` or a whole-row reference (`SELECT c FROM sales.creditcard c`) over a table that has denied columns (`sales.creditcard`, `humanresources.employee`) |
+| `PII_IN_EXPRESSION` | A PII column (matched by column name whatever the qualifier) anywhere except as a bare column reference (an alias is allowed) or under `*` / `t.*` in the **top-level select list of a query that is not a set operation**. So PII is blocked inside expressions and function calls, in subqueries, CTEs and set-operation branches, and in `WHERE`, `JOIN … ON`, `GROUP BY`, `HAVING`, `ORDER BY`, `DISTINCT ON` and window clauses; whole-row references to a table with PII columns are blocked everywhere. Reason: masking (13.5) works only while a result column keeps its origin, and a PII column used in a filter can be extracted one character at a time without ever being selected |
+| `FUNCTION_NOT_ALLOWED` | Any function not on the allowlist; function-like parse-tree nodes that are not on the node-type allowlist (table functions in `FROM`, `TABLESAMPLE`, XML/JSON functions); SQL value keywords other than `CURRENT_DATE`, `CURRENT_TIMESTAMP` and `LOCALTIMESTAMP` (so `current_user`, `session_user`, `current_role`, `user`, `current_schema`, `current_catalog`, `current_time`, `localtime` are blocked); casts (`::type`, `CAST`) to a type not on the cast-type allowlist |
+
+**Node-type allowlist:** only the parse-tree node types a read-only `SELECT` needs (select statement, CTE, join, subquery, column and constant references, operators, boolean and null tests, `CASE`, `COALESCE`/`NULLIF`/`GREATEST`/`LEAST`, function calls, sort, window, grouping, `VALUES` lists, …) are accepted; anything else is rejected. Maintained in `policy.ts`.
+
+**Cast-type allowlist:** `smallint`, `integer`, `bigint`, `numeric`/`decimal`, `real`, `double precision`, `text`, `varchar`, `char`, `date`, `time`, `timestamp`, `timestamptz`, `interval`, `boolean`. Casts to anything else (for example `regclass`, `regproc`, `oid`, composite or array types) are blocked, because type input functions can probe the system catalogs. Maintained in `policy.ts`.
 
 **Function allowlist:** aggregates (`count`, `sum`, `avg`, `min`, `max`, `string_agg`, `bool_and`, `bool_or`); date/time (`date_trunc`, `date_part`/`extract`, `age`, `to_char`, `make_date`); math (`round`, `floor`, `ceil`, `abs`); string (`lower`, `upper`, `trim`, `concat`, `length`, `substring`, `replace`, `split_part`, `position`); window (`row_number`, `rank`, `dense_rank`, `lag`, `lead`, `ntile`, `first_value`, `last_value`); `coalesce`, `nullif`, `greatest`, `least`. Maintained in `policy.ts`.
 
-**Policy data:** allowed schemas `sales`, `production`, `person`, `humanresources`, `purchasing`; denied table `person.password`; denied columns `sales.creditcard.cardnumber`, `humanresources.employee.nationalidnumber`, `humanresources.employee.loginid`; PII columns `person.emailaddress.emailaddress`, `person.personphone.phonenumber`. Must match the database grants in section 24.
+**Policy data:** allowed schemas `sales`, `production`, `person`, `humanresources`, `purchasing`; denied table `person.password`; denied columns `sales.creditcard.cardnumber`, `humanresources.employee.nationalidnumber`, `humanresources.employee.loginid`, `person.person.additionalcontactinfo`, `humanresources.jobcandidate.resume`; PII columns `person.emailaddress.emailaddress`, `person.personphone.phonenumber`, `production.productreview.emailaddress` (email). Must match the database grants in section 24.
 
-**Row limit (`safety/limit.ts`):** with the parser's deparser, add `LIMIT QUERY_ROW_LIMIT + 1` to the top-level query when absent, or lower a larger one. The extra row detects truncation. Never wrap the query in a subquery.
+**Row limit (`safety/limit.ts`):** the top-level query gets `LIMIT QUERY_ROW_LIMIT + 1` when it has none (or `LIMIT ALL` / `LIMIT NULL`), and a larger integer limit is lowered to it; a smaller one is kept. The extra row detects truncation. The change is written into the **original SQL text** at the parser's token positions (UTF-8 byte offsets): `LIMIT n` is appended on a new line, or the limit literal is replaced in place; no deparser is used. If the existing top-level limit is not an integer literal (an expression, subquery, cast, non-integer or string constant), the query is rejected (fail closed). The rewritten text is parsed again and must produce exactly the intended tree (ignoring source positions); otherwise the query is rejected. A rejected rewrite ends validation as `NOT_SELECT`. Never wrap the query in a subquery.
 
 ### 13.2 Layer 3 — cost check (`safety/cost.ts`)
 
@@ -726,7 +730,7 @@ Years and phrasing are adjusted in M4 to the data actually present.
 Provided files: `docker-compose.yml`, `infra/postgres/Dockerfile`, `infra/postgres/init/01-roles-and-databases.sh`, `02-load-adventureworks.sh`, `03-reader-grants.sh`, root `.env.example`.
 
 - **Image:** `pgvector/pgvector:pg17` plus build-time preparation of AdventureWorks: Microsoft's AdventureWorks OLTP CSVs and lorint's `install.sql` + `update_csvs.rb` are downloaded and the CSVs converted with Ruby.
-- **First start** (empty volume) runs the init scripts in order: roles and databases (+ `vector` and `pg_trgm` extensions in app and test databases) → AdventureWorks load (view errors expected; fails if fewer than 68 base tables) → reader grants (section 10.1).
+- **First start** (empty volume) runs the init scripts in order: roles and databases (+ `vector` and `pg_trgm` extensions in app and test databases) → AdventureWorks load (view errors expected; fails if fewer than 68 base tables) → reader grants (section 10.1): base tables only, no access to `person.password`, column-level grants without the denied columns of section 13.1 (`sales.creditcard`, `humanresources.employee`, `person.person`, `humanresources.jobcandidate`).
 - Init scripts run **only when the data volume is empty**. Changing them requires `docker compose down -v` (deletes data; needs approval) and a new start.
 - Passwords come from the root `.env` (`POSTGRES_SUPERUSER_PASSWORD`, `QC_APP_PASSWORD`, `QC_READER_PASSWORD`).
 - Port from `POSTGRES_PORT` (default 5432). Healthcheck uses TCP `pg_isready`, so the service reports healthy only after initialisation finishes.
@@ -782,7 +786,7 @@ Created in M0, updated at the end of every milestone, finalised in M8. Every sta
 | D7 | Function allowlist | Denylist | Secure by default; denylists miss unknown dangerous functions | Legitimate functions blocked until added |
 | D8 | Policy violation ends the run | Retry with feedback | Retries teach the model to search for bypasses | A wrongly blocked question is not auto-recovered |
 | D9 | `EXPLAIN` without `ANALYZE` | `EXPLAIN ANALYZE` | `ANALYZE` executes the query | Planner cost is an estimate; thresholds need tuning |
-| D10 | Row limit by rewriting the parsed query (`limit + 1`) | Wrapping in a subquery | Wrapping can lose `ORDER BY` semantics; `+1` detects truncation | Requires deparser support |
+| D10 | Row limit (`limit + 1`) written into the original SQL text at parser token positions, verified by re-parsing to the exact intended tree; non-literal limits rejected | Wrapping in a subquery; deparsing a modified tree | Wrapping can lose `ORDER BY` semantics; the PG 17 deparser changes meaning (window frames, `WITH TIES`); `+1` detects truncation | Queries whose top-level limit is an expression are rejected |
 | D11 | PII masking by result-field origin; PII blocked inside expressions | Masking by column name | Aliases cannot evade it; expressions lose origin so they are blocked | Some harmless expressions blocked |
 | D12 | Base-table grants only; column-level grants for tables with denied columns | Grant all tables then revoke columns | Views run as their owner and could leak; column revokes cannot narrow a table grant | Views unavailable to the agent |
 | D13 | Schema-qualified table names required | Search path resolution | Exact allowlist checks, no ambiguity | One more rejection reason |

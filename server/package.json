@@ -27,6 +27,7 @@
   "type": "module",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@pgsql/types": "17.6.2",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.6",
@@ -48,6 +49,7 @@
     "express": "^5.3.0",
     "helmet": "^8.3.0",
     "pg": "^8.23.1",
+    "pgsql-parser": "17.9.17",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",
     "zod": "^4.6.7"

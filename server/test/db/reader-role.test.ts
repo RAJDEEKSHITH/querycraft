@@ -73,6 +73,10 @@ describe('qc_reader role', () => {
     ['humanresources.employee.nationalidnumber', 'SELECT nationalidnumber FROM humanresources.employee LIMIT 1'],
     ['humanresources.employee.loginid', 'SELECT loginid FROM humanresources.employee LIMIT 1'],
     ['humanresources.employee.*', 'SELECT * FROM humanresources.employee LIMIT 1'],
+    ['person.person.additionalcontactinfo', 'SELECT additionalcontactinfo FROM person.person LIMIT 1'],
+    ['person.person.*', 'SELECT * FROM person.person LIMIT 1'],
+    ['humanresources.jobcandidate.resume', 'SELECT resume FROM humanresources.jobcandidate LIMIT 1'],
+    ['humanresources.jobcandidate.*', 'SELECT * FROM humanresources.jobcandidate LIMIT 1'],
     ['denied column in a WHERE clause', "SELECT creditcardid FROM sales.creditcard WHERE cardnumber LIKE '1%'"],
   ])('cannot read %s', async (_name, sql) => {
     await expect(client.query(sql)).rejects.toMatchObject({ code: INSUFFICIENT_PRIVILEGE })
@@ -81,6 +85,12 @@ describe('qc_reader role', () => {
   it('can read the allowed columns of tables with denied columns', async () => {
     await expect(client.query('SELECT creditcardid, cardtype FROM sales.creditcard LIMIT 1')).resolves.toBeDefined()
     await expect(client.query('SELECT businessentityid, jobtitle FROM humanresources.employee LIMIT 1')).resolves.toBeDefined()
+    await expect(
+      client.query('SELECT businessentityid, firstname, lastname, demographics FROM person.person LIMIT 1'),
+    ).resolves.toBeDefined()
+    await expect(
+      client.query('SELECT jobcandidateid, businessentityid FROM humanresources.jobcandidate LIMIT 1'),
+    ).resolves.toBeDefined()
   })
 
   it('cannot read any view in the AdventureWorks schemas', async () => {
