@@ -1,6 +1,8 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { classifyGroqRateLimit, createGroqLlmClient, createLlmClient } from '../../src/agent/llm.js'
+import { z } from 'zod'
+import { classifyGroqRateLimit, createGroqLlmClient, createLlmClient, providerJsonSchema } from '../../src/agent/llm.js'
 import { createMockChatProvider } from '../../src/agent/mock-llm.js'
+import { generateOutput } from '../../src/agent/output.js'
 import { closeAppPool, getAppPool } from '../../src/db/app.js'
 import { AppError } from '../../src/lib/errors.js'
 
@@ -165,6 +167,96 @@ describe('LLM client (mock provider)', () => {
   })
 })
 
+describe('structured output (mock provider)', () => {
+  const output = generateOutput(true)
+  const sqlReply = {
+    result: {
+      action: 'sql',
+      sql: 'SELECT count(*) FROM sales.salesorderheader',
+      tablesUsed: ['sales.salesorderheader'],
+      assumptions: [],
+      explanation: 'Counts orders',
+    },
+  }
+
+  it('sends the wrapped JSON schema and returns the validated value with usage recorded', async () => {
+    const provider = createMockChatProvider(() => JSON.stringify(sqlReply))
+    const result = await createLlmClient(provider).structured([system, user], output, { source: 'app', model: 'main' })
+    expect(result).toMatchObject({ ok: true, value: sqlReply, model: 'main-model' })
+    expect(provider.requests[0]?.format).toEqual({ name: 'generate_result', schema: providerJsonSchema(output.schema) })
+    expect((await usage())[0]?.llm_requests).toBe(1)
+  })
+
+  it.each([
+    ['not JSON', 'SELECT 1', /not valid JSON/],
+    ['JSON that breaks the schema', JSON.stringify({ result: { action: 'clarify', question: 'Which?', options: ['a'] } }), /result\.options/],
+    ['an unknown action', JSON.stringify({ result: { action: 'drop', sql: 'x' } }), /did not match/],
+    ['an empty reply', '  ', /empty/],
+  ])('returns ok: false for %s, and still records the tokens', async (_name, reply, issue) => {
+    const result = await createLlmClient(createMockChatProvider(() => reply)).structured([user], output, {
+      source: 'app',
+      model: 'main',
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.issue).toMatch(issue)
+    expect((await usage())[0]?.llm_requests).toBe(1)
+  })
+
+  it('accepts clarify and cannot_answer replies', async () => {
+    for (const reply of [
+      { result: { action: 'clarify', question: 'Which year?', options: ['2023', '2024'] } },
+      { result: { action: 'cannot_answer', reason: 'No such data' } },
+    ]) {
+      const result = await createLlmClient(createMockChatProvider(() => JSON.stringify(reply))).structured([user], output, {
+        source: 'app',
+        model: 'main',
+      })
+      expect(result).toMatchObject({ ok: true, value: reply })
+    }
+  })
+
+  it('rejects clarify once the clarification limit removes it from the schema', async () => {
+    const reply = JSON.stringify({ result: { action: 'clarify', question: 'Which?', options: ['a', 'b'] } })
+    const result = await createLlmClient(createMockChatProvider(() => reply)).structured([user], generateOutput(false), {
+      source: 'app',
+      model: 'main',
+    })
+    expect(result.ok).toBe(false)
+  })
+
+  it('checks the budget before a structured call', async () => {
+    await getAppPool().query("INSERT INTO daily_usage (day, source, llm_tokens) VALUES ((now() AT TIME ZONE 'UTC')::date, 'app', 1000)")
+    const provider = createMockChatProvider(() => JSON.stringify(sqlReply))
+    const err = await caught(createLlmClient(provider).structured([user], output, { source: 'app', model: 'main' }))
+    expect(err instanceof AppError && err.code).toBe('BUDGET_EXCEEDED')
+    expect(provider.requests).toHaveLength(0)
+  })
+})
+
+describe('provider JSON schema (Groq strict subset)', () => {
+  it('wraps the 12.4 union under result with anyOf, one-value enums, all fields required, no extra properties', () => {
+    const schema = providerJsonSchema(generateOutput(true).schema)
+    expect(schema).toMatchObject({ type: 'object', required: ['result'], additionalProperties: false })
+    const text = JSON.stringify(schema)
+    for (const keyword of ['oneOf', 'const', 'minItems', 'maxItems', '$schema']) expect(text).not.toContain(`"${keyword}"`)
+    const variants = z.object({ properties: z.object({ result: z.object({ anyOf: z.array(z.looseObject({ required: z.array(z.string()), additionalProperties: z.literal(false), properties: z.looseObject({ action: z.object({ type: z.string(), enum: z.array(z.string()) }) }) })) }) }) }).parse(schema).properties.result.anyOf
+    expect(variants.map((v) => v.properties.action.enum)).toEqual([['sql'], ['clarify'], ['cannot_answer']])
+    expect(variants.map((v) => v.required)).toEqual([
+      ['action', 'sql', 'tablesUsed', 'assumptions', 'explanation'],
+      ['action', 'question', 'options'],
+      ['action', 'reason'],
+    ])
+  })
+
+  it('has no clarify variant once clarifications are used up', () => {
+    expect(JSON.stringify(providerJsonSchema(generateOutput(false).schema))).not.toContain('clarify')
+  })
+
+  it('refuses a schema whose root is not an object', () => {
+    expect(() => providerJsonSchema(z.discriminatedUnion('a', [z.object({ a: z.literal('x') }), z.object({ a: z.literal('y') })]))).toThrow(/object root/)
+  })
+})
+
 describe('Groq provider over HTTP (fetch replaced, no network)', () => {
   function completion(text: string): Response {
     return new Response(
@@ -200,6 +292,26 @@ describe('Groq provider over HTTP (fetch replaced, no network)', () => {
     expect(bodies).toHaveLength(1)
     expect(bodies[0]).toMatchObject({ model: 'main-model', temperature: 0 })
     expect((await usage())[0]).toMatchObject({ llm_tokens: 15, llm_requests: 1 })
+  })
+
+  it('sends a strict json_schema response format for structured calls', async () => {
+    const bodies: unknown[] = []
+    const reply = { result: { action: 'cannot_answer', reason: 'Not in the data' } }
+    vi.stubGlobal('fetch', (_url: string, init: RequestInit) => {
+      bodies.push(JSON.parse(typeof init.body === 'string' ? init.body : '{}') as unknown)
+      return Promise.resolve(completion(JSON.stringify(reply)))
+    })
+    const output = generateOutput(true)
+    const result = await createGroqLlmClient().structured([system, user], output, { source: 'app', model: 'main' })
+    expect(result).toMatchObject({ ok: true, value: reply, inputTokens: 11, outputTokens: 4 })
+    expect(bodies[0]).toMatchObject({
+      model: 'main-model',
+      temperature: 0,
+      response_format: {
+        type: 'json_schema',
+        json_schema: { name: 'generate_result', strict: true, schema: providerJsonSchema(output.schema) },
+      },
+    })
   })
 
   it('retries a real SDK 429 after retry-after and never retries inside the SDK', async () => {

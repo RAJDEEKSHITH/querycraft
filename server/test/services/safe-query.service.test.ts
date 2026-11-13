@@ -1,9 +1,16 @@
-import { randomUUID } from 'node:crypto'
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { closeAppPool, getAppPool } from '../../src/db/app.js'
 import { closeReaderConnections } from '../../src/safety/executor.js'
 import { recordAuditEvent } from '../../src/services/audit.service.js'
-import { runSafeQuery, type SafeQueryInput } from '../../src/services/safe-query.service.js'
+import {
+  checkCost,
+  checkPolicy,
+  executeChecked,
+  recordApproval,
+  runSafeQuery,
+  type SafeQueryInput,
+} from '../../src/services/safe-query.service.js'
+import { createTestQuestion } from '../helpers/questions.js'
 
 // The whole pipeline against querycraft_test (audit) and adventureworks (reader).
 // M1 acceptance: each decision writes exactly one audit row.
@@ -50,7 +57,7 @@ afterAll(async () => {
 
 describe('recordAuditEvent', () => {
   it('writes one row with all fields', async () => {
-    const questionId = randomUUID()
+    const questionId = await createTestQuestion()
     await recordAuditEvent({
       questionId,
       source: 'eval',
@@ -168,10 +175,61 @@ describe('runSafeQuery', () => {
   })
 
   it('records source and question id on every row', async () => {
-    const questionId = randomUUID()
+    const questionId = await createTestQuestion()
     await run(CHEAP, { source: 'eval', questionId })
     const rows = await auditRows()
     expect(rows).toHaveLength(3)
     for (const row of rows) expect(row).toMatchObject({ source: 'eval', question_id: questionId })
+  })
+})
+
+describe('pipeline stages (agent graph)', () => {
+  const context = { source: 'app' } as const
+
+  it('checkPolicy returns the limited SQL and writes one POLICY_OK row', async () => {
+    const result = await checkPolicy(CHEAP, context)
+    expect(result).toEqual({ status: 'ok', sql: `${CHEAP}\nLIMIT 21` })
+    expect((await auditRows()).map((r) => r.rule)).toEqual(['POLICY_OK'])
+  })
+
+  it('checkPolicy blocks a policy violation with its rule', async () => {
+    const result = await checkPolicy('SELECT passwordhash FROM person.password', context)
+    expect(result).toMatchObject({ status: 'blocked', stage: 'validation', rule: 'TABLE_DENIED', retryable: false })
+    expect((await auditRows()).map((r) => r.decision)).toEqual(['blocked'])
+  })
+
+  it('checkCost asks for approval above the soft limit and records the user decision', async () => {
+    const policy = await checkPolicy(MEDIUM, context)
+    if (policy.status !== 'ok') throw new Error('policy failed')
+    const cost = await checkCost(policy.sql, 'require_approval', context)
+    expect(cost).toMatchObject({ status: 'needs_approval', sql: policy.sql, softLimit: 1000 })
+    if (cost.status !== 'needs_approval') throw new Error('expected approval')
+    await recordApproval(cost.sql, true, cost.cost, context)
+    await recordApproval(cost.sql, false, cost.cost, context)
+    const rows = await auditRows()
+    expect(rows.map((r) => [r.stage, r.decision, r.rule])).toEqual([
+      ['validation', 'allowed', 'POLICY_OK'],
+      ['cost', 'needs_approval', 'COST_SOFT_LIMIT'],
+      ['cost', 'allowed', 'COST_APPROVED'],
+      ['cost', 'blocked', 'APPROVAL_DENIED'],
+    ])
+  })
+
+  it('executeChecked runs checked SQL and masks nothing it should not', async () => {
+    const policy = await checkPolicy(CHEAP, context)
+    if (policy.status !== 'ok') throw new Error('policy failed')
+    const result = await executeChecked(policy.sql, context)
+    expect(result).toMatchObject({ status: 'executed', rowCount: 1, truncated: false })
+    expect((await auditRows()).map((r) => r.rule)).toEqual(['POLICY_OK', 'EXECUTED'])
+  })
+
+  it.each([
+    ['SQL that never went through checkPolicy (no row limit)', CHEAP],
+    ['a denied query with a limit added by hand', 'SELECT passwordhash FROM person.password\nLIMIT 21'],
+    ['a write with a limit added by hand', 'DELETE FROM sales.store\nLIMIT 21'],
+  ])('executeChecked refuses %s without executing it', async (_name, sql) => {
+    const result = await executeChecked(sql, context)
+    expect(result).toMatchObject({ status: 'blocked', stage: 'validation', rule: 'NOT_SELECT', retryable: false })
+    expect((await auditRows()).map((r) => [r.stage, r.rule])).toEqual([['validation', 'NOT_SELECT']])
   })
 })

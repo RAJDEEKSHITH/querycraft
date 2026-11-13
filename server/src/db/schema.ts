@@ -1,4 +1,5 @@
 import {
+  boolean,
   date,
   index,
   integer,
@@ -21,12 +22,12 @@ export const requestSource = pgEnum('request_source', ['app', 'mcp', 'eval'])
 export const auditStage = pgEnum('audit_stage', ['input', 'validation', 'cost', 'execution', 'output'])
 export const auditDecision = pgEnum('audit_decision', ['allowed', 'blocked', 'needs_approval'])
 
-// M1. question_id gets its foreign key to questions in M3, when that table exists.
+// M1; question_id references questions since M3.
 export const auditEvents = pgTable(
   'audit_events',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    questionId: uuid('question_id'),
+    questionId: uuid('question_id').references(() => questions.id),
     source: requestSource('source').notNull(),
     stage: auditStage('stage').notNull(),
     decision: auditDecision('decision').notNull(),
@@ -139,4 +140,68 @@ export const dailyUsage = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.day, t.source] })],
+)
+
+// M3 — conversations and questions (IMPLEMENTATION.md 10.3, 12). Result rows are
+// never stored: only columns, count and SQL.
+
+export const questionStatus = pgEnum('question_status', [
+  'running',
+  'awaiting_clarification',
+  'awaiting_approval',
+  'answered',
+  'blocked',
+  'cannot_answer',
+  'failed',
+  'cancelled',
+])
+
+/** A result column as stored in `questions.result_columns` (no rows). */
+export interface StoredColumn {
+  name: string
+  type: string
+}
+
+/** One completed graph step, as stored in `questions.trace`. */
+export interface TraceEntry {
+  node: string
+  startedAt: string
+  durationMs: number
+  detail?: Record<string, unknown> | undefined
+}
+
+export const conversations = pgTable('conversations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+export const questions = pgTable(
+  'questions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    conversationId: uuid('conversation_id')
+      .notNull()
+      .references(() => conversations.id),
+    question: text('question').notNull(),
+    status: questionStatus('status').notNull().default('running'),
+    finalSql: text('final_sql'),
+    answer: text('answer'),
+    explanation: text('explanation'),
+    tablesUsed: jsonb('tables_used').$type<string[]>(),
+    assumptions: jsonb('assumptions').$type<string[]>(),
+    resultColumns: jsonb('result_columns').$type<StoredColumn[]>(),
+    rowCount: integer('row_count'),
+    truncated: boolean('truncated'),
+    attempts: integer('attempts').notNull().default(0),
+    trace: jsonb('trace').$type<TraceEntry[]>().notNull().default([]),
+    errorCode: text('error_code'),
+    promptTokens: integer('prompt_tokens').notNull().default(0),
+    completionTokens: integer('completion_tokens').notNull().default(0),
+    embeddingTokens: integer('embedding_tokens').notNull().default(0),
+    costUsd: numeric('cost_usd', { precision: 12, scale: 6 }).notNull().default('0'),
+    latencyMs: integer('latency_ms'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+  },
+  (t) => [index('questions_conversation_created_idx').on(t.conversationId, t.createdAt)],
 )

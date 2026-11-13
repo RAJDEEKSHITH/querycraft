@@ -129,3 +129,23 @@ describe('retrieveContext', () => {
     expect(b).toEqual(a)
   })
 })
+
+describe('retrieveContext ablation options (20.4)', () => {
+  it('baseline: every allowed table, nothing else, and no embedding call', async () => {
+    const before = provider.requests
+    const context = await retrieveContext(DEPARTMENT_QUESTION, embeddings, 'app', { schemaRetrieval: false, extras: false })
+    expect(provider.requests).toBe(before)
+    expect(context.tables).toHaveLength(schema.tables.length)
+    expect(context.tables.every((t) => t.similarity === null && t.columns.every((c) => !c.denied))).toBe(true)
+    expect(context).toMatchObject({ examples: [], glossary: [], values: [] })
+  })
+
+  it('+schema: top 8 tables only, without example tables, glossary or values', async () => {
+    const context = await retrieveContext('Revenue from customers in Germny', embeddings, 'app', {
+      schemaRetrieval: true,
+      extras: false,
+    })
+    expect(context.tables).toHaveLength(8)
+    expect(context).toMatchObject({ examples: [], glossary: [], values: [] })
+  })
+})

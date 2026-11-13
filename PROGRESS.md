@@ -4,13 +4,33 @@ Verified facts only. Read at the start of every session (see `CLAUDE.md` section
 
 ## Handoff
 
-- **Current milestone:** M2 — Knowledge base and retrieval: **complete** (2026-11-13; completion report given).
-- **Current task:** none. Waiting for the user to review and commit the M2 changes.
-- **Last completed step:** real runs done and recorded; `PROGRESS.md` and `NOTES.md` updated; completion report given.
-- **Next step:** the user commits; "continue" starts M3 (Agent graph) with a milestone plan. M3 starts with one approved real Groq call to verify structured output and temperature 0 (M3 acceptance).
+- **Current milestone:** M3 — Agent graph: **complete** (2026-11-13; completion report given).
+- **Current task:** none. Waiting for the user to review and commit the M3 changes.
+- **Last completed step:** task 3 closed: a 4th approved Groq request returned `clarify`; all three 12.4 actions confirmed from the real model (NOTES.md Numbers).
+- **Next step:** the user commits; "continue" starts M4 (Evaluation harness) with a milestone plan.
 - **Files changed but unfinished:** none.
 - **Pending approvals / questions:** none.
-- **Last command results (2026-11-13, end of M2, real exit codes):** server `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (34 files, 641 tests), `pnpm build` 0. Client not touched in M2. Real runs: see "M2 real runs" below.
+- **Last command results (2026-11-13, end of M3, real exit codes):** server `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (36 files, 694 tests), `pnpm build` 0. `pnpm db:migrate`: `20261113164024_conversations_and_questions` applied to both app databases. Server start: stale-run recovery logged count 0. Real Groq verification: 4 requests, 3,167 tokens (structured output, temperature 0, `sql`, `clarify`, `cannot_answer`). Client not touched.
+
+### M3 plan decisions (approved by the user, 2026-11-13)
+
+1. Q1: `generate` output wrapped as `{ result: <12.4 union> }` (Groq strict mode forbids a root union; `@langchain/groq` would keep only the first variant); inner value validated with the exact 12.4 Zod union; `clarify` variant dropped after `MAX_CLARIFICATIONS`.
+2. Q2: `runSafeQuery` split into `checkPolicy`, `checkCost`, `executeChecked` (each audits its own decision); `runSafeQuery` composes them (M1/MCP/eval behaviour unchanged, M1 tests pass unmodified).
+3. Q3: `@langchain/langgraph` 1.7.3, `@langchain/langgraph-checkpoint-postgres` 1.1.2 (exact pins; 1.7.4 / 1.1.3 were inside pnpm's minimum release age). Resolved: `@langchain/langgraph-checkpoint` 1.2.2, `@langchain/langgraph-sdk` 1.15.0; one zod (4.6.7), one `@langchain/core` (1.4.0); `pnpm-workspace.yaml` unchanged. pnpm printed "Agent skills awaiting approval: drizzle-kit" again (not approved).
+4. Q4: migration `conversations`, `questions` (+ `question_status` enum, `(conversation_id, created_at)` index), FK `audit_events.question_id → questions.id`.
+5. Q5: 3 real Groq requests with the wrapped schema (results in NOTES.md Numbers).
+6. Defaults approved: empty / too-long question → `failed` / `VALIDATION_ERROR`; an invalid structured reply counts as an attempt; blocked → `error_code` = rule id; budget / provider failures → `failed` with that code.
+
+### M3 implementation choices (recorded in NOTES.md D56–D62)
+
+- Result rows never enter the checkpointed graph state: they live in a per-run-segment map next to the freshly built graph (test: no row value in `checkpoint_blobs` / `checkpoint_writes` / `checkpoints`).
+- State keys `answerText` and `approvalDecision` (12.2 `answer` / `approval`) because LangGraph forbids a channel named like a node.
+- `executeChecked` re-runs the policy and requires the row limit already applied; unchecked SQL is blocked as `NOT_SELECT` without touching the database. New audit rule `APPROVAL_DENIED` for a denied approval (`COST_APPROVED` for an approved one).
+- `mask_output` records which columns were masked; masking itself happens in the executor stage (layer 5), so no caller can get unmasked rows.
+- `createQuestion` strips control characters before storing (a NUL crashed the insert; found by a test).
+- `final_sql` = the generated SQL (without the added row limit), also kept for blocked runs; `latency_ms` = processing time summed over run segments (waiting for the user excluded).
+- Checkpointer tables (`checkpoints`, `checkpoint_blobs`, `checkpoint_writes`, `checkpoint_migrations`) created by `PostgresSaver.setup()` in the `public` schema of the app database (test database under tests).
+- Stale-run recovery runs at server start (`src/index.ts`).
 
 ### M2 real runs (2026-11-13, approved by the user)
 
@@ -98,6 +118,7 @@ The user approved all of these on 2026-11-13, including the changes reported as 
 - Server devDependencies: `vitest` 5.1.0, `supertest` 7.3.2, `@types/supertest` 7.2.1, `@types/cors` 2.8.19, `eslint` 10.14.0, `@eslint/js` 10.0.1, `typescript-eslint` 8.72.2, `globals` 17.14.0, `typescript` 7.0.2 → 6.0.3.
 - Client devDependencies: `vitest` 5.1.0.
 - pnpm printed "Agent skills awaiting approval: drizzle-kit"; not approved (not a package, not requested).
+- M3 (approved 2026-11-13): server dependencies `@langchain/langgraph` 1.7.3, `@langchain/langgraph-checkpoint-postgres` 1.1.2 (details in M3 plan decisions, item 3).
 - M2 (approved 2026-11-13): server dependencies `@google/genai` 3.2.0, `@langchain/groq` 1.3.1, `@langchain/core` 1.4.0 (details in M2 plan decisions, item 3).
 - M1 (approved 2026-11-13): server dependency `pgsql-parser` 17.9.17 (brings libpg-query 17.7.3, pgsql-deparser 17.18.5, @pgsql/types 17.6.2; only `parse` is used); server devDependency `@pgsql/types` 17.6.2.
 
@@ -108,12 +129,24 @@ The user approved all of these on 2026-11-13, including the changes reported as 
 | M0 — Foundation and infrastructure | Complete (2026-11-13; report given) |
 | M1 — Safety layer | Complete (2026-11-13; report given) |
 | M2 — Knowledge base and retrieval | Complete (2026-11-13; report given) |
-| M3 — Agent graph | Not started |
+| M3 — Agent graph | Complete (2026-11-13; report given) |
 | M4 — Evaluation harness | Not started |
 | M5 — HTTP API and streaming | Not started |
 | M6 — Client | Not started |
 | M7 — MCP server | Not started |
 | M8 — Finish | Not started |
+
+## Completed milestone tasks (M3)
+
+- [x] 1. Migration (both databases): `conversations`, `questions` (status enum, `questions(conversation_id, created_at)` index), FK `audit_events.question_id → questions.id`
+- [x] 2. `agent/llm.ts` structured output (Groq strict JSON schema, Zod-validated, usage recorded, 429 handling) + mock LLM support for scripted structured replies
+- [x] 3. Real verification calls (approved; 4 requests): `LLM_MODEL` structured output and temperature 0; `sql`, `clarify`, `cannot_answer` all returned; results in `NOTES.md`
+- [x] 4. Safety stage functions in `services/safe-query.service.ts` (policy, cost, execute; one audit row per decision); `runSafeQuery` composes them
+- [x] 5. Agent state, nodes and edges per 12.1–12.3: input_guard, retrieve_context, generate, clarify (interrupt), validate_sql, cost_check, approval (interrupt), execute, mask_output, answer; attempt limit, policy-block termination, zero-row review, clarification limit → forced assumption
+- [x] 6. Prompts in `agent/prompts/` (generate, answer) per 12.5 and 17 (token economy)
+- [x] 7. Postgres checkpointer (thread id = question id), resume in a new graph instance
+- [x] 8. Question runner service: conversation context (last 3 answered turns), trace and usage persistence on `questions`, status updates, resume clarification/approval, ablation flags, stale-run recovery at startup
+- [x] 9. Integration tests (mock LLM, mock embeddings, real Postgres): every M3 acceptance path
 
 ## Completed milestone tasks (M2)
 
@@ -160,7 +193,7 @@ The user approved all of these on 2026-11-13, including the changes reported as 
 |---|---|---|
 | Typecheck | ✓ (2026-11-13) | ✓ (2026-11-13) |
 | Lint | ✓ (2026-11-13) | ✓ (2026-11-13) |
-| Tests | ✓ no test files yet (until M6) | ✓ 19 files, 452 tests (2026-11-13, end of M1) |
+| Tests | ✓ no test files yet (until M6) | ✓ 36 files, 694 tests (2026-11-13, M3) |
 | Build | ✓ (2026-11-13) | ✓ (2026-11-13) |
 
 ## Facts recorded

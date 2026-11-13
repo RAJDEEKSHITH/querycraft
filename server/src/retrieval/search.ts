@@ -44,6 +44,20 @@ export async function searchTables(vector: readonly number[], limit: number): Pr
   return rows.map((r) => ({ ...r, similarity: Number(r.similarity) }))
 }
 
+/** Every indexed table (no similarity), for runs without schema retrieval (ablation `baseline`). */
+export async function allTables(): Promise<TableHit[]> {
+  const rows = await getAppDb()
+    .select({
+      schema: schemaTables.schemaName,
+      table: schemaTables.tableName,
+      description: schemaTables.description,
+      columns: schemaTables.columns,
+    })
+    .from(schemaTables)
+    .orderBy(asc(schemaTables.schemaName), asc(schemaTables.tableName))
+  return rows.map((r) => ({ ...r, similarity: null }))
+}
+
 /** Tables by name (no similarity), for tables referenced by retrieved examples. */
 export async function tablesByName(names: readonly { schema: string; table: string }[]): Promise<TableHit[]> {
   if (names.length === 0) return []
