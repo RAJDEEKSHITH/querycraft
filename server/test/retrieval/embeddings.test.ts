@@ -17,6 +17,7 @@ vi.stubEnv('EMBEDDING_MODEL', 'gemini-embedding-001')
 vi.stubEnv('PROVIDER_MAX_RETRIES', '3')
 vi.stubEnv('PROVIDER_MAX_WAIT_MS', '30000')
 vi.stubEnv('DAILY_TOKEN_BUDGET', '1000')
+vi.stubEnv('EVAL_DAILY_TOKEN_BUDGET', '1000')
 vi.stubEnv('EMBEDDING_PRICE_PER_1M_USD', '0')
 
 /** A Gemini 429 body as the API returns it (RetryInfo detail with the delay). */
@@ -124,12 +125,22 @@ describe('embeddings client (mock provider)', () => {
     expect(provider.requests).toBe(0)
   })
 
-  it('is not capped for evaluation runs', async () => {
+  it('does not apply the app + MCP budget to evaluation runs', async () => {
     await getAppPool().query(
       `INSERT INTO daily_usage (day, source, llm_tokens) VALUES ((now() AT TIME ZONE 'UTC')::date, 'app', 1000)`,
     )
     const provider = createMockEmbeddingProvider()
     await expect(createEmbeddingsClient(provider).embed(['q'], { task: 'query', source: 'eval' })).resolves.toHaveLength(1)
+  })
+
+  it('refuses evaluation calls once the evaluation budget is used up', async () => {
+    await getAppPool().query(
+      `INSERT INTO daily_usage (day, source, llm_tokens) VALUES ((now() AT TIME ZONE 'UTC')::date, 'eval', 1000)`,
+    )
+    const provider = createMockEmbeddingProvider()
+    const err = await caught(createEmbeddingsClient(provider).embed(['q'], { task: 'query', source: 'eval' }))
+    expect(err instanceof AppError && err.code).toBe('BUDGET_EXCEEDED')
+    expect(provider.requests).toBe(0)
   })
 
   it('waits on a 429 with a delay, then succeeds and records one request', async () => {

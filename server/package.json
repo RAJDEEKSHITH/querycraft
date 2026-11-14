@@ -15,7 +15,8 @@
     "kb:introspect": "tsx src/kb/cli-introspect.ts",
     "kb:describe": "tsx src/kb/cli-describe.ts",
     "kb:index": "tsx src/kb/cli-index.ts",
-    "kb:top-tables": "tsx src/kb/cli-top-tables.ts"
+    "kb:top-tables": "tsx src/kb/cli-top-tables.ts",
+    "eval:run": "tsx evals/cli-run.ts"
   },
   "keywords": [],
   "author": "",

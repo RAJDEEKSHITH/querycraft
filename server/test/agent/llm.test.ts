@@ -14,6 +14,7 @@ vi.stubEnv('LLM_ANSWER_MODEL', 'answer-model')
 vi.stubEnv('PROVIDER_MAX_RETRIES', '3')
 vi.stubEnv('PROVIDER_MAX_WAIT_MS', '30000')
 vi.stubEnv('DAILY_TOKEN_BUDGET', '1000')
+vi.stubEnv('EVAL_DAILY_TOKEN_BUDGET', '1000')
 vi.stubEnv('LLM_INPUT_PRICE_PER_1M_USD', '0.15')
 vi.stubEnv('LLM_OUTPUT_PRICE_PER_1M_USD', '0.6')
 
@@ -111,6 +112,16 @@ describe('LLM client (mock provider)', () => {
     )
     const provider = createMockChatProvider(() => 'ok')
     const err = await caught(createLlmClient(provider).chat([user], { source: 'app', model: 'main' }))
+    expect(err instanceof AppError && err.code).toBe('BUDGET_EXCEEDED')
+    expect(provider.requests).toHaveLength(0)
+  })
+
+  it('blocks evaluation calls at the evaluation budget before calling the provider', async () => {
+    await getAppPool().query(
+      `INSERT INTO daily_usage (day, source, llm_tokens) VALUES ((now() AT TIME ZONE 'UTC')::date, 'eval', 1000)`,
+    )
+    const provider = createMockChatProvider(() => 'ok')
+    const err = await caught(createLlmClient(provider).chat([user], { source: 'eval', model: 'main' }))
     expect(err instanceof AppError && err.code).toBe('BUDGET_EXCEEDED')
     expect(provider.requests).toHaveLength(0)
   })

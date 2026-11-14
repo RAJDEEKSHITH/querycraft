@@ -8,8 +8,9 @@ import type { RequestSource } from './audit.service.js'
 
 // Usage accounting and the daily token budget (IMPLEMENTATION.md 17, D15, D25).
 //
-// - The budget counts LLM tokens of the app and MCP only; embedding tokens are
-//   recorded but not counted, and evaluation runs are not capped here.
+// - DAILY_TOKEN_BUDGET counts LLM tokens of the app and MCP; evaluation runs have
+//   their own EVAL_DAILY_TOKEN_BUDGET over source `eval` (M4 decision). Embedding
+//   tokens are recorded but never counted.
 // - Check before a call, atomic add after it (D15): concurrent calls may overshoot
 //   by one call each.
 // - A budget day is the UTC date, computed by the database in both places.
@@ -68,26 +69,38 @@ export async function recordUsage(increment: UsageIncrement): Promise<void> {
     })
 }
 
-/** LLM tokens used today by the budgeted sources (app + MCP). */
-export async function budgetedTokensToday(): Promise<number> {
+async function llmTokensToday(sources: readonly RequestSource[]): Promise<number> {
   const rows = await getAppDb()
     .select({ used: sql<string>`coalesce(sum(${dailyUsage.llmTokens}), 0)` })
     .from(dailyUsage)
-    .where(and(eq(dailyUsage.day, UTC_TODAY), inArray(dailyUsage.source, [...BUDGETED_SOURCES])))
+    .where(and(eq(dailyUsage.day, UTC_TODAY), inArray(dailyUsage.source, [...sources])))
   return Number(rows[0]?.used ?? 0)
 }
 
+/** LLM tokens used today by the budgeted sources (app + MCP). */
+export async function budgetedTokensToday(): Promise<number> {
+  return llmTokensToday(BUDGETED_SOURCES)
+}
+
+/** LLM tokens used today by evaluation runs. */
+export async function evalTokensToday(): Promise<number> {
+  return llmTokensToday(['eval'])
+}
+
 /**
- * Throws BUDGET_EXCEEDED when the source is budgeted and today's LLM tokens have
- * reached DAILY_TOKEN_BUDGET. Called before every LLM and embedding call.
+ * Throws BUDGET_EXCEEDED when today's LLM tokens have reached the source's cap:
+ * DAILY_TOKEN_BUDGET for app + MCP together, EVAL_DAILY_TOKEN_BUDGET for eval.
+ * Called before every LLM and embedding call.
  */
 export async function assertWithinBudget(source: RequestSource): Promise<void> {
-  if (!(BUDGETED_SOURCES as readonly RequestSource[]).includes(source)) {
+  const env = getEnv()
+  if (source === 'eval') {
+    if ((await evalTokensToday()) >= env.EVAL_DAILY_TOKEN_BUDGET) {
+      throw new AppError('BUDGET_EXCEEDED', 'The daily evaluation token budget has been reached.')
+    }
     return
   }
-  const limit = getEnv().DAILY_TOKEN_BUDGET
-  const used = await budgetedTokensToday()
-  if (used >= limit) {
+  if ((await budgetedTokensToday()) >= env.DAILY_TOKEN_BUDGET) {
     throw new AppError('BUDGET_EXCEEDED', 'The daily usage limit has been reached. Please try again tomorrow.')
   }
 }

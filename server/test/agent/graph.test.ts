@@ -5,6 +5,7 @@ import { createMockChatProvider, type MockChatProvider, type MockReply } from '.
 import { NO_MORE_CLARIFICATIONS, ZERO_ROW_REVIEW } from '../../src/agent/prompts/generate.js'
 import type { AgentFlags } from '../../src/agent/state.js'
 import { closeAppPool, getAppPool } from '../../src/db/app.js'
+import type { TraceEntry } from '../../src/db/schema.js'
 import { AppError } from '../../src/lib/errors.js'
 import { examplesFileSchema, glossaryFileSchema, readSeedFile, schemaFileSchema, seedPath } from '../../src/kb/seed-files.js'
 import { createEmbeddingsClient } from '../../src/retrieval/embeddings.js'
@@ -115,7 +116,7 @@ interface QuestionRow {
   error_code: string | null
   row_count: number | null
   assumptions: string[] | null
-  trace: { node: string }[]
+  trace: TraceEntry[]
   prompt_tokens: number
   completion_tokens: number
   latency_ms: number | null
@@ -178,6 +179,13 @@ describe('agent graph paths (mock LLM)', () => {
     expect(r.trace.map((t) => t.node)).toEqual([
       'input_guard', 'retrieve_context', 'generate', 'validate_sql', 'cost_check', 'execute', 'mask_output', 'answer',
     ])
+    const retrieveDetail = r.trace.find((t) => t.node === 'retrieve_context')?.detail
+    const tableNames = retrieveDetail?.['tableNames']
+    expect(Array.isArray(tableNames)).toBe(true)
+    if (!Array.isArray(tableNames)) throw new Error('no table names in the trace')
+    expect(tableNames).toHaveLength(Number(retrieveDetail?.['tables']))
+    expect(tableNames.length).toBeGreaterThan(0)
+    for (const name of tableNames) expect(name).toMatch(/^[a-z]+\.[a-z]+$/)
     expect(r.prompt_tokens).toBeGreaterThan(0)
     expect(r.completion_tokens).toBeGreaterThan(0)
     expect(r.latency_ms).toBeGreaterThanOrEqual(0)

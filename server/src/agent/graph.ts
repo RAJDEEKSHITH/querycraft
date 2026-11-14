@@ -143,6 +143,8 @@ export function buildAgentGraph(deps: AgentDeps) {
       update: { retrieved },
       detail: {
         tables: retrieved.tables.length,
+        // Names (schema-qualified, retrieval order) so failed runs can be diagnosed from the trace.
+        tableNames: retrieved.tables.map((t) => `${t.schema}.${t.table}`),
         examples: retrieved.examples.length,
         glossary: retrieved.glossary.length,
         values: retrieved.values.length,

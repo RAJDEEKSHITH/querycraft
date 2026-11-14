@@ -35,6 +35,7 @@ export const envSchema = z
     PROVIDER_MAX_WAIT_MS: positiveInt,
 
     DAILY_TOKEN_BUDGET: positiveInt,
+    EVAL_DAILY_TOKEN_BUDGET: positiveInt,
     RATE_LIMIT_PER_MINUTE: positiveInt,
     QUESTION_MAX_LENGTH: positiveInt,
 

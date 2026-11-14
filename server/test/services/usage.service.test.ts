@@ -1,9 +1,10 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { closeAppPool, getAppPool } from '../../src/db/app.js'
 import { AppError } from '../../src/lib/errors.js'
-import { assertWithinBudget, budgetedTokensToday, recordUsage } from '../../src/services/usage.service.js'
+import { assertWithinBudget, budgetedTokensToday, evalTokensToday, recordUsage } from '../../src/services/usage.service.js'
 
 vi.stubEnv('DAILY_TOKEN_BUDGET', '1000')
+vi.stubEnv('EVAL_DAILY_TOKEN_BUDGET', '500')
 
 interface UsageRow {
   source: string
@@ -112,11 +113,29 @@ describe('token budget guard', () => {
     await expect(assertWithinBudget('app')).resolves.toBeUndefined()
   })
 
-  it('does not count or cap evaluation runs', async () => {
+  it('caps evaluation runs separately with EVAL_DAILY_TOKEN_BUDGET', async () => {
+    await recordUsage({ source: 'eval', llmTokens: 499 })
+    await expect(assertWithinBudget('eval')).resolves.toBeUndefined()
+    await recordUsage({ source: 'eval', llmTokens: 1 })
+    expect(await evalTokensToday()).toBe(500)
+    await expectBudgetExceeded(assertWithinBudget('eval'))
+  })
+
+  it('keeps the app + MCP and evaluation budgets apart', async () => {
     await recordUsage({ source: 'eval', llmTokens: 50_000 })
     await expect(assertWithinBudget('app')).resolves.toBeUndefined()
+    expect(await budgetedTokensToday()).toBe(0)
+    await getAppPool().query('TRUNCATE daily_usage')
     await recordUsage({ source: 'app', llmTokens: 1000 })
+    await recordUsage({ source: 'mcp', llmTokens: 1000 })
     await expect(assertWithinBudget('eval')).resolves.toBeUndefined()
+    expect(await evalTokensToday()).toBe(0)
+  })
+
+  it('reports the evaluation cap with its own safe message', async () => {
+    await recordUsage({ source: 'eval', llmTokens: 500 })
+    const err: unknown = await assertWithinBudget('eval').catch((e: unknown) => e)
+    expect(err instanceof AppError ? err.message : '').toBe('The daily evaluation token budget has been reached.')
   })
 
   it('ignores earlier days', async () => {

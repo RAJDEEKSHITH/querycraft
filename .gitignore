@@ -10,7 +10,7 @@ coverage/
 !.env.example
 
 # Evaluation raw outputs (REPORT.md is committed)
-server/evals/reports/*.json
+server/evals/reports/*.jsonl
 
 # Claude Code local settings
 .claude/settings.local.json

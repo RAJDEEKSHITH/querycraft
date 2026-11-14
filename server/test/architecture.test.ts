@@ -4,10 +4,11 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 // IMPLEMENTATION.md 9.3 rule 1: only safety/executor.ts, safety/cost.ts and the
-// knowledge-base scripts (kb:introspect, kb:index) import db/reader.ts.
+// knowledge-base scripts (kb:introspect, kb:index) import db/reader.ts; evals/ never does.
 const ALLOWED_READER_IMPORTERS = ['safety/executor.ts', 'safety/cost.ts', 'kb/cli-introspect.ts', 'kb/cli-index.ts']
 
 const srcRoot = fileURLToPath(new URL('../src', import.meta.url))
+const evalsRoot = fileURLToPath(new URL('../evals', import.meta.url))
 const readerModule = join(srcRoot, 'db', 'reader')
 
 function listTsFiles(dir: string): string[] {
@@ -53,6 +54,12 @@ describe('architecture', () => {
   it('only allowed modules import db/reader.ts', () => {
     const violations = readerImporters.filter((file) => !ALLOWED_READER_IMPORTERS.includes(file))
     expect(violations).toEqual([])
+  })
+
+  it('evaluation code never imports db/reader.ts (it uses the safety pipeline)', () => {
+    const evalFiles = listTsFiles(evalsRoot)
+    expect(evalFiles.length).toBeGreaterThan(0)
+    expect(evalFiles.filter((file) => importsReader(file)).map((file) => toPosix(relative(evalsRoot, file)))).toEqual([])
   })
 
   it('recognises every import form', () => {

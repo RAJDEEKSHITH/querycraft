@@ -1,4 +1,4 @@
-import { DatabaseError, type FieldDef, type PoolClient, type QueryArrayConfig, type QueryConfig } from 'pg'
+import { DatabaseError, types, type CustomTypesConfig, type FieldDef, type PoolClient, type QueryArrayConfig, type QueryConfig } from 'pg'
 import { closeReaderPool, getReaderPool } from '../db/reader.js'
 
 // Safety layer 4: executor (IMPLEMENTATION.md 13.3). Every query runs in
@@ -141,12 +141,35 @@ function toColumn(field: FieldDef): ResultColumn {
   }
 }
 
+// node-postgres turns `date` and `timestamp` (without time zone) into JS Dates in
+// the server's local time zone, which shifts them once serialised as UTC
+// (2024-01-01 became 2023-12-31T18:30:00Z on a UTC+05:30 machine). These types
+// carry no time zone, so result values stay the exact text Postgres sent.
+// `timestamptz` keeps the default parser: it is an absolute instant.
+const PG_TYPE = { date: 1082, timestamp: 1114, dateArray: 1182, timestampArray: 1115, textArray: 1009 } as const
+
+function resultTypeParser(oid: number, format?: 'text' | 'binary'): (value: string) => unknown {
+  if (oid === PG_TYPE.date || oid === PG_TYPE.timestamp) return (value) => value
+  // Arrays of these types are parsed like text arrays, so each element stays text.
+  if (oid === PG_TYPE.dateArray || oid === PG_TYPE.timestampArray) return defaultTypeParser(PG_TYPE.textArray, format)
+  return defaultTypeParser(oid, format)
+}
+
+// pg-types types its parsers as returning `any`; seen through this signature they return `unknown`.
+const defaultTypeParser: (oid: number, format?: 'text' | 'binary') => (value: string) => unknown = types.getTypeParser
+
+const resultTypes: CustomTypesConfig = { getTypeParser: resultTypeParser }
+
 /** Executes one already validated and limited SELECT. Rows are arrays (duplicate column names stay distinct). */
 export async function executeQuery(sql: string, options: ExecuteOptions): Promise<ExecutionResult> {
   const started = performance.now()
   try {
     return await runReadOnly(options.timeoutMs, async (client): Promise<ExecutionResult> => {
-      const config: QueryArrayConfig & { queryMode: 'extended' } = { ...extendedQuery(sql), rowMode: 'array' }
+      const config: QueryArrayConfig & { queryMode: 'extended' } = {
+        ...extendedQuery(sql),
+        rowMode: 'array',
+        types: resultTypes,
+      }
       const result = await client.query<unknown[]>(config)
       await resolveOrigins(client, result.fields)
       await resolveTypeNames(client, result.fields)

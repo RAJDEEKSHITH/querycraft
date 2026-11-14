@@ -30,6 +30,36 @@ describe('executeQuery', () => {
     expect(result.rows[0]).toHaveLength(2)
   })
 
+  it('returns date and timestamp values exactly as stored, with no time-zone shift', async () => {
+    const result = await executeQuery(
+      `SELECT '2024-01-01'::date AS d, '2024-01-01 00:00:00'::timestamp AS ts,
+              '2024-07-15 13:45:30.123'::timestamp AS ts_fraction,
+              ARRAY['2024-01-01'::date, '2024-02-29'::date] AS dates,
+              ARRAY['2024-01-01 08:00:00'::timestamp] AS stamps`,
+      options,
+    )
+    if (!result.ok) throw new Error(result.dbMessage)
+    expect(result.columns.map((c) => c.type)).toEqual([
+      'date',
+      'timestamp without time zone',
+      'timestamp without time zone',
+      'date[]',
+      'timestamp without time zone[]',
+    ])
+    expect(result.rows).toEqual([
+      ['2024-01-01', '2024-01-01 00:00:00', '2024-07-15 13:45:30.123', ['2024-01-01', '2024-02-29'], ['2024-01-01 08:00:00']],
+    ])
+  })
+
+  it('returns stored AdventureWorks order dates unchanged', async () => {
+    const result = await executeQuery(
+      "SELECT min(orderdate) AS first_order, date_trunc('month', min(orderdate)) AS first_month FROM sales.salesorderheader",
+      options,
+    )
+    if (!result.ok) throw new Error(result.dbMessage)
+    expect(result.rows).toEqual([['2022-05-30 00:00:00', '2022-05-01 00:00:00']])
+  })
+
   it('keeps duplicate column names apart (rows are arrays)', async () => {
     const result = await executeQuery(
       'SELECT s.name, t.name FROM sales.store s JOIN sales.customer c ON c.storeid = s.businessentityid JOIN sales.salesterritory t ON t.territoryid = c.territoryid LIMIT 2',

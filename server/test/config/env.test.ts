@@ -24,6 +24,7 @@ const validEnv: Record<string, string> = {
   PROVIDER_MAX_RETRIES: '3',
   PROVIDER_MAX_WAIT_MS: '30000',
   DAILY_TOKEN_BUDGET: '100000',
+  EVAL_DAILY_TOKEN_BUDGET: '100000',
   RATE_LIMIT_PER_MINUTE: '10',
   QUESTION_MAX_LENGTH: '500',
   QUERY_TIMEOUT_MS: '5000',
@@ -97,6 +98,7 @@ describe('env schema', () => {
     ['LLM_INPUT_PRICE_PER_1M_USD', '-1'],
     ['PROVIDER_MAX_RETRIES', '1.5'],
     ['DAILY_TOKEN_BUDGET', '0'],
+    ['EVAL_DAILY_TOKEN_BUDGET', '0'],
     ['MAX_SQL_ATTEMPTS', '0'],
     ['ADMIN_TOKEN', 'too-short'],
   ])('rejects %s=%s', (name, value) => {
