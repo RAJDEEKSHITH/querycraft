@@ -1,4 +1,4 @@
-import { asc, eq, sql } from 'drizzle-orm'
+import { and, asc, eq, sql } from 'drizzle-orm'
 import { getAppDb } from '../db/app.js'
 import { glossaryTerms, schemaTables, type KbColumn } from '../db/schema.js'
 import { AppError } from '../lib/errors.js'
@@ -48,6 +48,15 @@ export async function listTables(): Promise<TableView[]> {
     .from(schemaTables)
     .orderBy(asc(schemaTables.schemaName), asc(schemaTables.tableName))
   return rows.map(tableView)
+}
+
+/** One table of the knowledge base by schema and name, or null. */
+export async function findTable(schema: string, table: string): Promise<TableView | null> {
+  const [row] = await getAppDb()
+    .select(tableColumns)
+    .from(schemaTables)
+    .where(and(eq(schemaTables.schemaName, schema), eq(schemaTables.tableName, table)))
+  return row === undefined ? null : tableView(row)
 }
 
 export async function updateTableDescription(id: string, description: string): Promise<TableView> {

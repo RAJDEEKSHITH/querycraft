@@ -4,14 +4,16 @@ Verified facts only. Read at the start of every session (see `CLAUDE.md` section
 
 ## Handoff
 
-- **Current milestone:** M6 — Client: **complete 2026-11-16**, completion report given; waiting for the user's "continue" to start M7 (MCP server).
-- **Current task:** none (M6 tasks 1–11 ticked).
+- **Current milestone:** M7 — MCP server (started 2026-11-16 on the user's "continue"). M6 complete 2026-11-16 (report given; committed by the user as `6c72fcc`).
+- **Paused:** 2026-11-16 by the user, end of day. Resume tomorrow with the user's Claude Desktop check of demo moment 8.
+- **Current task:** M7 task 7: the user's Claude Desktop check (demo moment 8); then the M7 completion report.
 - **Frozen (user decision A, 2026-11-14, NOTES.md D72; answer prompt reopened by the user 2026-11-16 for D83 and D88 only):** prompts (`src/agent/prompts/`), table descriptions, glossary, examples and retrieval settings (table top-k 8) are frozen. No further tuning. q11/q14 are recorded in NOTES.md Known limitations (similarity-only retrieval misses bridge tables like `sales.customer`; next step would be foreign-key expansion, out of scope). **M8 reminders for the README limitations list:** (1) the bridge-table retrieval limitation; (2) "partial-year data can skew period comparisons" (moment 6 re-check, NOTES.md Known limitations).
-- **Last completed step:** answer prompt D88 (few rows for > 5 rows, 2 decimals, truncation only on `truncated: yes`) with tests; approved moment 3 re-check (1 Groq request); user's browser re-check of moments 1, 6, 7 recorded; NOTES.md D88, numbers and the partial-year limitation; M6 completion report.
-- **Next step:** on "continue": start M7 with the milestone plan (CLAUDE.md section 3).
-- **Files changed but unfinished:** none. Uncommitted: `IMPLEMENTATION.md`, `PROGRESS.md`, `client/src/features/ask/suggestions.ts`, `server/src/agent/prompts/answer.ts`, `server/test/agent/answer-prompt.test.ts` (the rest of M6 was committed by the user in `747b128`); `NOTES.md` is git-ignored.
-- **Pending approvals / questions:** none.
-- **Last command results (2026-11-16, end of M6):** client `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (9 files, 76 tests), `pnpm build` 0. Server `pnpm typecheck` 0, `pnpm lint` 0, `pnpm build` 0, `pnpm test` 0 (46 files, 833 tests). Dev servers running (4000 under `tsx watch`, so the D88 answer prompt is live; 5173).
+- **Last completed step:** tasks 1–6: SDK installed (approved), `services/mcp.service.ts`, `mcp/tools.ts`, `mcp/server.ts` + `mcp/load-env.ts`, `test/mcp/tools.test.ts` (27 tests), stdio check of the built server (see "M7 stdio check"); Claude Desktop steps recorded below.
+- **Next step (first thing tomorrow):** after the session start protocol, the user connects Claude Desktop ("M7 Claude Desktop setup" below; `docker compose up -d` first) and asks: "Use the querycraft ask_question tool to answer: How many customers do we have?" (expected: answered, 19,820, SQL on `sales.customer`). Then the agent reads the run back from `questions` / `audit_events` (`source = mcp`), records it under the M7 notes, ticks task 7, updates NOTES.md numbers (server tests 860 in 47 files; moment 8), and gives the M7 completion report.
+- **Files changed but unfinished:** none. Uncommitted: `PROGRESS.md`, `server/package.json`, `server/pnpm-lock.yaml`, `server/src/services/knowledge.service.ts` (`findTable`), `server/src/services/mcp.service.ts`, `server/src/mcp/`, `server/test/mcp/`; `NOTES.md` is git-ignored.
+- **Pending approvals / questions:** user's Claude Desktop check (moment 8; real Groq calls, about 2 requests and 2,300 tokens for "How many customers do we have?").
+- **Open items to investigate:** (1) intermittent failure of M4 test `test/evals/runner.test.ts` › "full config: every question meets its expectation and REPORT.md is written": failed once (first full `pnpm test` after the M7 code, 2026-11-16), message not captured; passed alone (4,042 ms vs Vitest's 5,000 ms default timeout) and in 3 further full runs. Suspected timeout under load, not confirmed. User instruction: do not change the test now; whenever the full suite runs, save its output to a log in the scratchpad, and if this test fails again capture the full failure message and record it here before proposing any fix (CLAUDE.md 12 bug-fix steps).
+- **Last command results (2026-11-16, M7):** server `pnpm typecheck` 0, `pnpm lint` 0, `pnpm build` 0, `pnpm test`: 1st run 1 failed / 859 passed (`runner.test.ts` full-config dry run, see M7 notes), then 3 runs 0 (47 files, 860 tests). End of M6: client `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (9 files, 76 tests), `pnpm build` 0. Server `pnpm typecheck` 0, `pnpm lint` 0, `pnpm build` 0, `pnpm test` 0 (46 files, 833 tests). Dev servers running (4000 under `tsx watch`, so the D88 answer prompt is live; 5173).
 
 ### M4 real runs, day 2 (2026-11-16, approved by the user)
 
@@ -187,8 +189,35 @@ The user approved all of these on 2026-11-13, including the changes reported as 
 | M4 — Evaluation harness | Complete (2026-11-16; report given with the M5 progress message) |
 | M5 — HTTP API and streaming | Complete (2026-11-16; report given) |
 | M6 — Client | Complete (2026-11-16; report given, waiting for the user) |
-| M7 — MCP server | Not started |
+| M7 — MCP server | In progress (tasks 1–6 done 2026-11-16; waiting for the Claude Desktop check) |
 | M8 — Finish | Not started |
+
+## Milestone tasks (M7, plan given 2026-11-16)
+
+- [x] 1. Dependency `@modelcontextprotocol/sdk` (exact pin 1.32.2, server; approved by the user 2026-11-16)
+- [x] 2. `services/mcp.service.ts`: list tables, describe table (denied columns omitted, PII flagged), run safe query (`source = mcp`, soft limit blocks, at most 100 masked rows), ask question (budget check, `source = mcp`, clarification as text, soft-limit block returned with the estimate); `knowledge.service.ts` gets a single-table lookup
+- [x] 3. `mcp/tools.ts`: `createMcpServer(deps)` registers the four tools (Zod input schemas, text results, `isError` for blocked / refused / failed, safe messages only)
+- [x] 4. `mcp/server.ts`: stdio entry; loads `server/.env` relative to its own file (Claude Desktop starts it from another folder); env check; pino logger on stderr (stdout carries the protocol); closes pools on exit
+- [x] 5. Tests `test/mcp/`: SDK client over the SDK's in-memory transport lists and calls every tool (mock LLM and embeddings, `querycraft_test`); attacks via `run_safe_query` blocked and audited with `source = mcp`; soft-limit block; ask answer / clarification / approval refusal; invalid input
+- [x] 6. Build check: `dist/mcp/server.js` starts and answers `tools/list` over stdio (local, no provider calls); Claude Desktop setup instructions recorded for the M8 README
+- [ ] 7. Checks in the server; user confirms Claude Desktop (demo moment 8), result recorded here
+
+### M7 choices (approved by the user, 2026-11-16; NOTES.md D89–D92)
+
+(1) `mcp/load-env.ts` loads `server/.env` relative to its own file; (2) pino logs on stderr (stdout carries the protocol); (3) `ask_question` returns answer, explanation, SQL, tables used, assumptions and at most 100 masked rows; (4) a clarification is returned as text and the question stays `awaiting_clarification` (no MCP resume; the client asks again). Not chosen by the user but implied by the spec: `mcp/server.ts` does not run stale-run recovery (it would mark the web app's running questions failed). All four tools carry `readOnlyHint: true`.
+
+### M7 stdio check (2026-11-16, local, no provider calls)
+
+Scratch script with the SDK's stdio client: `node server/dist/mcp/server.js` started from the scratchpad folder with the SDK's default environment only (as Claude Desktop does). Result: server `querycraft` 1.0.0; tools `list_tables, describe_table, run_safe_query, ask_question`; `list_tables` 67 tables; `run_safe_query` "SELECT count(*) AS customers FROM sales.customer" → executed, 19820, cost 413.76; "DELETE FROM sales.customer" → blocked `NOT_SELECT`; stderr had only the two JSON log lines (ready, shutting down). `querycraft_app.audit_events`: 4 rows with `source = mcp` (POLICY_OK, COST_OK, EXECUTED, NOT_SELECT blocked).
+
+**Intermittent test failure (observed once, not reproduced):** the first full `pnpm test` after the M7 code failed `test/evals/runner.test.ts` › "full config: every question meets its expectation and REPORT.md is written" (M4 test, unchanged). The failure message was not captured. The file passes alone (22/22; that test took 4,042 ms against Vitest's default 5,000 ms timeout), and 3 further full runs passed (47 files, 860 tests). Likely cause, not confirmed: the test timeout under load. Not changed; reported to the user.
+
+### M7 Claude Desktop setup (Windows; for the M8 README)
+
+1. PostgreSQL running: `docker compose up -d` (repo root). The HTTP server does not need to run.
+2. Build: `pnpm build` in `server/` (creates `server/dist/mcp/server.js`).
+3. Claude Desktop → Settings → Developer → Edit Config (opens `claude_desktop_config.json`, usually `%APPDATA%\Claude\`). Add under `mcpServers`: `"querycraft": { "command": "C:\\nvm4w\\nodejs\\node.exe", "args": ["D:\\Projects\\QueryCraft\\server\\dist\\mcp\\server.js"] }` (JSON: every backslash doubled) (full path to `node.exe`, from `node -p process.execPath`). No env block: the server reads `server/.env` itself.
+4. Quit Claude Desktop fully (tray icon → Quit) and start it again; the tools menu lists `querycraft` with 4 tools. Logs: `%APPDATA%\Claude\logs\mcp-server-querycraft.log`.
 
 ## Milestone tasks (M6, approved 2026-11-16)
 
