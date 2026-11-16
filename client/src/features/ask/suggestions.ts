@@ -11,4 +11,5 @@ export const SUGGESTED_QUESTIONS: readonly string[] = [
   'Delete all orders',
   "Show me employees' national ID numbers",
   'How did sales change between the two periods?',
+  'Which 10 pairs of products are most often bought together in the same order? Show both product names and how often.',
 ]

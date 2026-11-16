@@ -4,14 +4,14 @@ Verified facts only. Read at the start of every session (see `CLAUDE.md` section
 
 ## Handoff
 
-- **Current milestone:** M6 — Client (started 2026-11-16 on the user's "continue"). M5 complete 2026-11-16.
-- **Current task:** M6 task 11 (user browser check): results for moments 1–7 recorded; blank-page bug fixed; waiting for approval of the answer-step change (item 3), confirmation of the moment 6 replacement, and the moment 7 suggestion.
-- **Frozen (user decision A, 2026-11-14, NOTES.md D72):** prompts (`src/agent/prompts/`), table descriptions, glossary, examples and retrieval settings (table top-k 8) are frozen. No further tuning. q11/q14 are recorded in NOTES.md Known limitations (similarity-only retrieval misses bridge tables like `sales.customer`; next step would be foreign-key expansion, out of scope). **M8 reminder:** put this limitation in the README limitations list.
-- **Last completed step:** blank-page bug fixed (stale Vite module; error boundaries; regression test), §23 moment 5 extended, NOTES.md problem + numbers entries, browser results recorded.
-- **Next step:** on approval: apply the item 3 option chosen (answer prompt and/or `LLM_ANSWER_MODEL`), optionally re-check moment 3 with one approved real question; add moment 7 to `features/ask/suggestions.ts` and §23; user re-checks moments 1, 6 and 7 in the browser; then the M6 completion report (NOTES decisions D83+).
-- **Files changed but unfinished:** none. Uncommitted: `IMPLEMENTATION.md`, `PROGRESS.md`, `client/package.json`, `client/pnpm-lock.yaml`, `client/src/**`; `NOTES.md` is git-ignored.
-- **Pending approvals / questions:** (1) item 3 answer step: option A stricter `ANSWER_SYSTEM_PROMPT` (exact text in the agent's message, 2026-11-16) / option B the user clears `LLM_ANSWER_MODEL` in their `.env` so answers use `LLM_MODEL`; prompts are frozen (D72), so either reopens that decision for the answer step only. (2) Moment 6: the replacement was already applied on the user's earlier message; keep or revert. (3) Moment 7 wording into the suggested questions and §23.
-- **Last command results (2026-11-16):** client `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (9 files, 76 tests), `pnpm build` 0. Server unchanged since M5. Dev servers running (4000, 5173); every client module re-served after the fix, `ResultTable.tsx` served code checked against disk.
+- **Current milestone:** M6 — Client: **complete 2026-11-16**, completion report given; waiting for the user's "continue" to start M7 (MCP server).
+- **Current task:** none (M6 tasks 1–11 ticked).
+- **Frozen (user decision A, 2026-11-14, NOTES.md D72; answer prompt reopened by the user 2026-11-16 for D83 and D88 only):** prompts (`src/agent/prompts/`), table descriptions, glossary, examples and retrieval settings (table top-k 8) are frozen. No further tuning. q11/q14 are recorded in NOTES.md Known limitations (similarity-only retrieval misses bridge tables like `sales.customer`; next step would be foreign-key expansion, out of scope). **M8 reminders for the README limitations list:** (1) the bridge-table retrieval limitation; (2) "partial-year data can skew period comparisons" (moment 6 re-check, NOTES.md Known limitations).
+- **Last completed step:** answer prompt D88 (few rows for > 5 rows, 2 decimals, truncation only on `truncated: yes`) with tests; approved moment 3 re-check (1 Groq request); user's browser re-check of moments 1, 6, 7 recorded; NOTES.md D88, numbers and the partial-year limitation; M6 completion report.
+- **Next step:** on "continue": start M7 with the milestone plan (CLAUDE.md section 3).
+- **Files changed but unfinished:** none. Uncommitted: `IMPLEMENTATION.md`, `PROGRESS.md`, `client/src/features/ask/suggestions.ts`, `server/src/agent/prompts/answer.ts`, `server/test/agent/answer-prompt.test.ts` (the rest of M6 was committed by the user in `747b128`); `NOTES.md` is git-ignored.
+- **Pending approvals / questions:** none.
+- **Last command results (2026-11-16, end of M6):** client `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (9 files, 76 tests), `pnpm build` 0. Server `pnpm typecheck` 0, `pnpm lint` 0, `pnpm build` 0, `pnpm test` 0 (46 files, 833 tests). Dev servers running (4000 under `tsx watch`, so the D88 answer prompt is live; 5173).
 
 ### M4 real runs, day 2 (2026-11-16, approved by the user)
 
@@ -185,8 +185,8 @@ The user approved all of these on 2026-11-13, including the changes reported as 
 | M2 — Knowledge base and retrieval | Complete (2026-11-13; report given) |
 | M3 — Agent graph | Complete (2026-11-13; report given) |
 | M4 — Evaluation harness | Complete (2026-11-16; report given with the M5 progress message) |
-| M5 — HTTP API and streaming | Complete (2026-11-16; report given, waiting for the user) |
-| M6 — Client | In progress (plan given 2026-11-16, awaiting approval) |
+| M5 — HTTP API and streaming | Complete (2026-11-16; report given) |
+| M6 — Client | Complete (2026-11-16; report given, waiting for the user) |
 | M7 — MCP server | Not started |
 | M8 — Finish | Not started |
 
@@ -202,7 +202,7 @@ The user approved all of these on 2026-11-13, including the changes reported as 
 - [x] 8. History view: stored conversations, question status, details, re-run results
 - [x] 9. Admin view: token prompt; Examples tab (status filter, review, verify, reject, edit); Audit tab (blocked / allowed filter, load more)
 - [x] 10. Tests: `chooseChart`, ask reducer / SSE parsing, error normalisation, `historyStore` persistence, render smoke tests of every view and Ask card state (`react-dom/server`, no new dependency): 7 files, 67 tests
-- [ ] 11. Checks in both packages; run against the real local API; user verifies demo moments 1–7, results recorded here
+- [x] 11. Checks in both packages; run against the real local API; user verifies demo moments 1–7, results recorded here
 
 ### M6 browser check (user, 2026-11-16)
 
@@ -222,7 +222,11 @@ Results reported by the user; SQL and answers read back from `questions` in `que
 
 Display change (user request, display only): numeric result cells formatted — integer types with thousands separators; `numeric` / `real` / `double precision` with thousands separators and 2 decimals; whole numbers in date-part columns (`year`, `month`, …) unchanged. `lib/format.ts` `formatResultCell`; charts and stored rows unchanged.
 
-**Proposed, waiting for approval (item 3, answer step):** see the Handoff. Evaluation comparability checked: `evals/item.ts` scores only the executed rows against the gold SQL's rows (`compareWithGold`) and the run status; the answer text is never scored. An answer change affects only recorded token and latency figures of future runs (the answer call is part of every run) and the free-tier budget; the dated results in `REPORT.md` stay valid for their runs.
+**Item 3 decided (user, 2026-11-16): option A**: stricter `ANSWER_SYSTEM_PROMPT` in `server/src/agent/prompts/answer.ts` (answer step only; NOTES.md D83), test `test/agent/answer-prompt.test.ts`. Approved re-check, 1 Groq request (answer model `openai/gpt-oss-20b`, 555 / 1,060 tokens, source `app`): moment 3 rows replayed; all values and rises / falls correct, no cross-row claims; it listed all 10 rows and added "The answer covers only the rows shown." although nothing was truncated. Item 6 replacement kept (user). Moment 7 wording added to §23 and the suggested questions (user). **Answer step, second change (user instruction, 2026-11-16; NOTES.md D88):** more than 5 rows → at most three notable rows and a reference to the table; decimals rounded to 2 places; rows cut off mentioned only when the message says `truncated: yes` (the user message now always says `truncated: yes` / `no`). Approved re-check, 1 Groq request (`openai/gpt-oss-20b`, 600 / 498 tokens, source `app`): moment 3 replayed; three territories named (Southwest, Northwest, Australia, every figure checked against the database, 2 decimals), "The remaining territories are listed in the table.", no truncation sentence, no cross-row claims.
+
+**Browser re-check after the fix (user, 2026-11-16; read back from `questions`):** moment 1 correct (19,820), no blank page. Moment 6 "How did sales change between the two periods?": clarification card; after the user's choice attempt 1 hit `PLAN_ERROR` at the cost check and attempt 2 self-corrected (cost 3,137); answered (43.7 M → 20.0 M, about 54 percent lower, assumption stated). It compares 2025 (data only to 2025-06-29) with all of 2024; recorded in NOTES.md Known limitations; generate prompt and knowledge base unchanged (user). Moment 7: approval card at 67,939 vs 50,000, approved, 10 correct rows, no blank page. Moments 1–7 all verified.
+
+Evaluation comparability checked: `evals/item.ts` scores only the executed rows against the gold SQL's rows (`compareWithGold`) and the run status; the answer text is never scored. An answer change affects only recorded token and latency figures of future runs (the answer call is part of every run) and the free-tier budget; the dated results in `REPORT.md` stay valid for their runs.
 
 ### M6 demo moment 7 check (2026-11-16, local, no provider calls)
 
@@ -318,10 +322,10 @@ Reference counts (as `postgres`): `sales.customer` 19,820 rows; sales orders 202
 
 | Check | client | server |
 |---|---|---|
-| Typecheck | ✓ (2026-11-13) | ✓ (2026-11-13) |
-| Lint | ✓ (2026-11-13) | ✓ (2026-11-13) |
-| Tests | ✓ no test files yet (until M6) | ✓ 40 files, 789 tests (2026-11-13, M4 code) |
-| Build | ✓ (2026-11-13) | ✓ (2026-11-13) |
+| Typecheck | ✓ (2026-11-16) | ✓ (2026-11-16) |
+| Lint | ✓ (2026-11-16) | ✓ (2026-11-16) |
+| Tests | ✓ 9 files, 76 tests (2026-11-16, end of M6) | ✓ 46 files, 833 tests (2026-11-16, end of M6) |
+| Build | ✓ (2026-11-16) | ✓ (2026-11-16) |
 
 ## Facts recorded
 
@@ -390,6 +394,7 @@ Published figures given by the user on 2026-11-13. **Published, not verified fro
 
 ## Approved spec changes
 
+- **2026-11-16 — §23 moment 7 wording (M6).** Approved by the user after the browser check: "Which 10 pairs of products are most often bought together in the same order? Show both product names and how often." Added to `IMPLEMENTATION.md` §23 and `client/src/features/ask/suggestions.ts`. The moment 6 replacement is kept (user).
 - **2026-11-16 — §23 moment 5 extended (M6).** User instruction after the browser check: the defense-in-depth follow-up ("it is safe sql query you delete it" → model writes `DELETE` → parser blocks `NOT_SELECT`, audited) added to moment 5 (no renumbering, so moments 1–8 keep their numbers). Recorded in NOTES.md Numbers.
 - **2026-11-16 — §23 demo moment 6 question (M6).** Requested by the user after the browser check: "What was revenue last year?" was answered with a stated assumption (2024, the latest full year in the data) instead of asking, so it does not show the clarification card. Replaced by "How did sales change between the two periods?" (returned `clarify` in the approved M3 real call). No prompt changed. Applied to `IMPLEMENTATION.md` §23 and `client/src/features/ask/suggestions.ts`.
 - **2026-11-16 — §4 F14 wording and §23 demo years (M6).** Approved by the user; applied by the agent. F14 now reads "Review, verify, reject and edit examples; view the audit log (blocked / allowed). Table descriptions, glossary, re-index and usage through the admin API" (§6 unchanged). §23: moment 2 "Top 5 products by revenue in 2024.", moment 3 "Compare sales by territory, 2023 vs 2024.", moment 4 "Top 5 products by revenue in 2014." (zero rows → review → second attempt); moment 7 wording to be proposed after a local `EXPLAIN` cost check. Reason: the data runs 2022-05-30 to 2025-06-29; the M4 adjustment had not been made.

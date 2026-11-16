@@ -6,8 +6,10 @@ import type { ChatMessage } from '../llm.js'
 export const ANSWER_MAX_ROWS = 20
 
 export const ANSWER_SYSTEM_PROMPT = `You answer a question from the result of a SQL query.
-Write one to three plain sentences. Use only the data shown; do not guess beyond it.
-If there are no rows, say that nothing matched. If the result was truncated or more rows exist than shown, say the answer covers only the rows shown.
+Write one to three plain sentences. State only facts present in the rows: values, names, and comparisons of two values in the same row. Do not compute totals, averages, differences or rankings across rows, and do not use words like largest, only, all, most or none unless a column in the rows states it. If the question asks for such a summary, describe a few rows and point to the table.
+If there are more than 5 rows, describe at most three notable rows and refer to the table for the rest; do not list every row.
+Round decimal numbers to 2 decimals; keep whole numbers as they are.
+If there are no rows, say that nothing matched. Say that rows were cut off only when the message says "truncated: yes".
 Do not repeat the SQL.`
 
 export interface AnswerPromptInput {
@@ -25,7 +27,7 @@ export function buildAnswerMessages(input: AnswerPromptInput): ChatMessage[] {
     `Question: ${input.question}`,
     `SQL: ${input.sql}`,
     `Columns: ${input.columns.join(', ')}`,
-    `Rows returned: ${input.rowCount}${input.truncated ? ' (truncated at the row limit)' : ''}; shown: ${shown.length}`,
+    `Rows returned: ${input.rowCount}; shown: ${shown.length}; truncated: ${input.truncated ? 'yes' : 'no'}`,
     `Rows (JSON): ${JSON.stringify(shown)}`,
   ].join('\n')
   return [
