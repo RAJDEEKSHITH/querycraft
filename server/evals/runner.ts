@@ -118,6 +118,21 @@ async function newHeader(
   }
 }
 
+/**
+ * REPORT.md with the baseline prompt size: `baseline` is not run (IMPLEMENTATION.md
+ * 20.4), so its fit check is measured here (no provider call) for the report.
+ */
+async function refreshReport(deps: RunnerDeps): Promise<void> {
+  const questions = await loadDataset('questions', deps.datasetPaths)
+  const baselineFit = await checkFit(
+    questions.items.map((i) => i.question),
+    getEnv().LLM_MODEL,
+    deps.providerLimits,
+    deps.question.embeddings,
+  )
+  await writeReport(deps.reportsDir, deps.reportPath, new Date(), baselineFit)
+}
+
 /** Opens a new run file or validates the one being resumed; returns its path, header and finished ids. */
 async function openRun(
   options: RunnerOptions,
@@ -174,7 +189,7 @@ export async function runEvaluation(options: RunnerOptions, deps: RunnerDeps): P
 
   if (header.fit?.fits === false) {
     deps.logger?.warn({ runId, fit: header.fit }, 'eval: config does not fit the model limits; no provider calls')
-    await writeReport(deps.reportsDir, deps.reportPath)
+    await refreshReport(deps)
     return summary('does_not_fit', 0, 0, true)
   }
 
@@ -214,7 +229,7 @@ export async function runEvaluation(options: RunnerOptions, deps: RunnerDeps): P
 
   const run = await readRunFile(file)
   const complete = isComplete(run)
-  if (complete) await writeReport(deps.reportsDir, deps.reportPath)
+  if (complete) await refreshReport(deps)
   const status = complete ? 'complete' : stop !== undefined ? 'stopped' : 'partial'
   return { ...summary(status, ranNow, finishedIds(run).size, complete), stop }
 }

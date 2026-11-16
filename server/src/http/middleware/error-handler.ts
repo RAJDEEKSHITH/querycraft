@@ -19,5 +19,9 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
   if (appError.status >= 500) {
     req.log.error({ err: appError.cause ?? appError }, 'request failed')
   }
+  const retryAfter = appError.details['retryAfterSeconds']
+  if (appError.code === 'UPSTREAM_RATE_LIMITED' && typeof retryAfter === 'number' && retryAfter > 0) {
+    res.set('Retry-After', String(Math.ceil(retryAfter)))
+  }
   res.status(appError.status).json(toErrorBody(appError))
 }

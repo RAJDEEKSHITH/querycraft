@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { createApp } from '../../src/app.js'
 import { errorHandler } from '../../src/http/middleware/error-handler.js'
 import { requestLogger } from '../../src/http/middleware/request-logger.js'
+import { offlineQuestionDeps } from '../helpers/http.js'
 import { captureLogger } from '../helpers/log-capture.js'
 
 const clientOrigin = 'http://localhost:5173'
@@ -11,7 +12,7 @@ const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 
 function testApp(): { app: ReturnType<typeof createApp>; lines: string[] } {
   const { logger, lines } = captureLogger()
-  return { app: createApp({ logger, clientOrigin, trustProxy: 0 }), lines }
+  return { app: createApp({ logger, clientOrigin, trustProxy: 0, questionDeps: offlineQuestionDeps(), rateLimitPerMinute: 1000 }), lines }
 }
 
 describe('Express app (no database)', () => {

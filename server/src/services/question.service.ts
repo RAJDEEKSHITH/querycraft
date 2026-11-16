@@ -2,7 +2,13 @@ import { Command, type BaseCheckpointSaver } from '@langchain/langgraph'
 import { and, desc, eq, isNotNull, lt, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { getCheckpointer } from '../agent/checkpointer.js'
-import { buildAgentGraph, stripControlCharacters, type ApprovalRequest, type ClarificationRequest } from '../agent/graph.js'
+import {
+  buildAgentGraph,
+  stripControlCharacters,
+  type ApprovalRequest,
+  type ClarificationRequest,
+  type StepEvent,
+} from '../agent/graph.js'
 import { createGroqLlmClient, type LlmClient } from '../agent/llm.js'
 import { FULL_FLAGS, type AgentFlags, type ConversationTurn } from '../agent/state.js'
 import { getEnv } from '../config/env.js'
@@ -38,9 +44,13 @@ export async function createQuestionDeps(logger?: Logger): Promise<QuestionDeps>
   }
 }
 
+/** Observer for live progress (SSE); it never changes the run. */
+export type StepListener = (event: StepEvent) => void
+
 export interface RunOptions {
   source: RequestSource
   flags?: AgentFlags | undefined
+  onStep?: StepListener | undefined
 }
 
 export type RunOutcome =
@@ -222,9 +232,10 @@ async function runSegment(
   questionId: string,
   input: Parameters<ReturnType<typeof buildAgentGraph>['invoke']>[0],
   deps: QuestionDeps,
+  onStep?: StepListener,
 ): Promise<RunOutcome> {
   const rows = new Map<string, unknown[][]>()
-  const graph = buildAgentGraph({ llm: deps.llm, embeddings: deps.embeddings, checkpointer: deps.checkpointer, rows })
+  const graph = buildAgentGraph({ llm: deps.llm, embeddings: deps.embeddings, checkpointer: deps.checkpointer, rows, onStep })
   const config = { configurable: { thread_id: questionId } }
   const started = performance.now()
   let failure: { errorCode: string; message: string } | undefined
@@ -270,6 +281,7 @@ export async function runQuestion(questionId: string, options: RunOptions, deps:
       conversationContext: conversationContextTurns,
     },
     deps,
+    options.onStep,
   )
 }
 
@@ -287,16 +299,62 @@ async function claimPaused(questionId: string, from: 'awaiting_clarification' | 
   throw new AppError('INVALID_STATE', `The question is not ${from.replace('_', ' ')}`)
 }
 
-export async function resumeClarification(questionId: string, answer: string, deps: QuestionDeps): Promise<RunOutcome> {
+/** A paused question moved back to `running`, ready to continue (resume split for the HTTP 202). */
+export interface ClaimedResume {
+  questionId: string
+  resume: string | { approved: boolean }
+}
+
+/** Validates the answer and claims the question; 400 / 404 / 409 before anything runs. */
+export async function claimClarification(questionId: string, answer: string): Promise<ClaimedResume> {
   const parsed = z.string().trim().min(1).max(getEnv().QUESTION_MAX_LENGTH).safeParse(answer)
   if (!parsed.success) throw new AppError('VALIDATION_ERROR', 'The clarification answer is empty or too long')
   await claimPaused(questionId, 'awaiting_clarification')
-  return runSegment(questionId, new Command({ resume: parsed.data }), deps)
+  return { questionId, resume: parsed.data }
+}
+
+/** Claims a question waiting for approval; 404 / 409 before anything runs. */
+export async function claimApproval(questionId: string, approved: boolean): Promise<ClaimedResume> {
+  await claimPaused(questionId, 'awaiting_approval')
+  return { questionId, resume: { approved } }
+}
+
+/** Continues a claimed question from its checkpoint until it ends or pauses again. */
+export function continueRun(claimed: ClaimedResume, deps: QuestionDeps, onStep?: StepListener): Promise<RunOutcome> {
+  return runSegment(claimed.questionId, new Command({ resume: claimed.resume }), deps, onStep)
+}
+
+export async function resumeClarification(questionId: string, answer: string, deps: QuestionDeps): Promise<RunOutcome> {
+  return continueRun(await claimClarification(questionId, answer), deps)
 }
 
 export async function resumeApproval(questionId: string, approved: boolean, deps: QuestionDeps): Promise<RunOutcome> {
-  await claimPaused(questionId, 'awaiting_approval')
-  return runSegment(questionId, new Command({ resume: { approved } }), deps)
+  return continueRun(await claimApproval(questionId, approved), deps)
+}
+
+/** A finished or paused run as recorded in its checkpoint; answered runs carry no rows (never stored). */
+export type CheckpointOutcome = Exclude<RunOutcome, { status: 'answered' }> | { status: 'answered' }
+
+/**
+ * Reads the outcome from the question's checkpoint (clarification or approval
+ * request, refusal reason, block, failure message). Null when the run left no
+ * checkpoint (it never started, or failed before its first step).
+ */
+export async function checkpointOutcome(questionId: string, deps: QuestionDeps): Promise<CheckpointOutcome | null> {
+  const graph = buildAgentGraph({ llm: deps.llm, embeddings: deps.embeddings, checkpointer: deps.checkpointer, rows: new Map() })
+  const snapshot = await graph.getState({ configurable: { thread_id: questionId } })
+  const parsed = checkpointState.safeParse(snapshot.values)
+  if (!parsed.success) return null
+  if (parsed.data.outcome?.status === 'answered') return { status: 'answered' }
+  return outcomeOf(parsed.data, snapshot.next, undefined)
+}
+
+/** Marks a question that is still `running` as failed (its background run crashed outside the graph). */
+export async function markRunFailed(questionId: string, errorCode: string): Promise<void> {
+  await getAppDb()
+    .update(questions)
+    .set({ status: 'failed', errorCode, completedAt: sql`now()` })
+    .where(and(eq(questions.id, questionId), eq(questions.status, 'running')))
 }
 
 /** At startup: questions still `running` after STALE_RUN_MINUTES lost their process (12.6). */

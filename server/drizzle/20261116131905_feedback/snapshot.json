@@ -1,0 +1,222 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "140132ae-aa70-46fd-ad98-dde90f4ef87a",
+  "prevIds": [
+    "230fb144-15a4-4245-8e2f-4f0fabe8fbf0"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "feedback_rating"
+      ],
+      "writes": [
+        "s|enum|public.feedback_rating",
+        "n|enum|public.feedback_rating",
+        "e|enum|public.feedback_rating",
+        "n|type|public.feedback_rating"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "feedback"
+      ],
+      "writes": [
+        "s|tbl|public.feedback",
+        "n|tbl|public.feedback",
+        "e|tbl|public.feedback",
+        "n|rel|public.feedback",
+        "n|type|public.feedback",
+        "n|rel|public.feedback_pkey",
+        "n|rel|public.feedback_question_id_key"
+      ],
+      "reads": [
+        "n|sch|public",
+        "n|enum|public.feedback_rating"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "feedback"
+      ],
+      "writes": [
+        "s|fk|public.feedback.feedback_question_id_questions_id_fkey",
+        "n|fk|public.feedback.feedback_question_id_questions_id_fkey",
+        "e|fk|public.feedback.feedback_question_id_questions_id_fkey",
+        "n|con|public.feedback.feedback_question_id_questions_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.feedback",
+        "n|sch|public",
+        "n|tbl|public.questions",
+        "n|sch|public",
+        "n|col|public.feedback.question_id",
+        "n|col|public.questions.id",
+        "e|uniqueness|public.questions.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "feedback",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "feedback_rating",
+        "values": [
+          "up",
+          "down"
+        ],
+        "entityType": "enums"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "feedback",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "feedback",
+        "name": "question_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "feedback",
+        "name": "rating",
+        "type": "feedback_rating",
+        "typeSchema": "public",
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "feedback",
+        "name": "comment",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "feedback",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "feedback",
+        "name": "feedback_question_id_questions_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "question_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "questions",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "feedback",
+        "name": "feedback_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "feedback",
+        "name": "feedback_question_id_key",
+        "nameExplicit": false,
+        "columns": [
+          "question_id"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    }
+  ]
+}

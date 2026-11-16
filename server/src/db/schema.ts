@@ -205,3 +205,18 @@ export const questions = pgTable(
   },
   (t) => [index('questions_conversation_created_idx').on(t.conversationId, t.createdAt)],
 )
+
+// M5 (IMPLEMENTATION.md 10.3): one rating per question; `up` on an answered
+// question also creates a pending example (only the admin verifies it).
+export const feedbackRating = pgEnum('feedback_rating', ['up', 'down'])
+
+export const feedback = pgTable('feedback', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  questionId: uuid('question_id')
+    .notNull()
+    .unique()
+    .references(() => questions.id),
+  rating: feedbackRating('rating').notNull(),
+  comment: text('comment'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})

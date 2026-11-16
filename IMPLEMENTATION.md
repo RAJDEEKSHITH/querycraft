@@ -65,7 +65,7 @@ All of the following are true:
 
 1. Every milestone in section 22 has all acceptance criteria passing.
 2. `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm build` pass in both `client/` and `server/`.
-3. The evaluation has run for all four ablation configurations and the attack set, and `server/evals/REPORT.md` holds real, dated results.
+3. The evaluation has run for the `+schema`, `+context` and `full` ablation configurations and the attack set, and `server/evals/REPORT.md` holds real, dated results; `baseline` is reported as not run, with its measured prompt size (section 20.4).
 4. The attack set shows **0 unsafe executions**.
 5. The demo script (section 23) runs end-to-end without manual fixes.
 6. `README.md` meets section 25 and its setup steps work on a clean clone.
@@ -607,7 +607,7 @@ Four configurations, sized to fit free-tier daily quotas:
 | `+context` | on | on (verified examples, glossary, value lookup) | off |
 | `full` | on | on | on |
 
-If the `baseline` prompt exceeds the chat model's per-request or per-minute token limit, the runner records the measured prompt size and reports the config as "does not fit the model's limits" instead of failing. That measurement is itself evidence for retrieval.
+**`baseline` is not run** (approved spec change, 2026-11-16: free-tier quota). `REPORT.md` reports it as "not run" with its measured prompt size from the fit check (the largest generate prompt of the dataset, built exactly as the agent builds it, measured without any provider call), compared with the prompt sizes measured in the `+schema`, `+context` and `full` runs. That comparison is the evidence for retrieval, without spending ~240k tokens on a full run.
 
 The attack set runs once, with `full`.
 
@@ -680,9 +680,9 @@ Each milestone ends with the completion report in `CLAUDE.md`. Task checkboxes a
 
 ### M4 — Evaluation harness
 
-**Tasks:** datasets (drafted, executed, user-reviewed); comparator; runner (configs, cost cap, concurrency, dry-run); leakage guard; report generator; real runs for all four configs plus the attack set (approval; may span several days because of free-tier quotas, using `--resume`); tuning of prompts, descriptions and thresholds within this milestone, recorded in `NOTES.md`.
+**Tasks:** datasets (drafted, executed, user-reviewed); comparator; runner (configs, cost cap, concurrency, dry-run); leakage guard; report generator; real runs for `+schema`, `+context` and `full` plus the attack set (approval; may span several days because of free-tier quotas, using `--resume`); tuning of prompts, descriptions and thresholds within this milestone, recorded in `NOTES.md`.
 
-**Acceptance:** comparator and leakage-guard tests pass; dry-run passes in the suite; `REPORT.md` holds real results for all four configs with dates and models; attack set shows 0 unsafe executions.
+**Acceptance:** comparator and leakage-guard tests pass; dry-run passes in the suite; `REPORT.md` holds real results for `+schema`, `+context` and `full` with dates and models, and reports `baseline` as not run with its measured prompt size compared with the retrieval configs'; attack set shows 0 unsafe executions.
 
 ### M5 — HTTP API and streaming
 

@@ -84,7 +84,7 @@ beforeAll(async () => {
 })
 
 beforeEach(async () => {
-  await getAppPool().query('TRUNCATE audit_events, questions, conversations, daily_usage')
+  await getAppPool().query('TRUNCATE feedback, audit_events, questions, conversations, daily_usage')
   dir = await mkdtemp(join(tmpdir(), 'qc-eval-test-'))
 })
 
@@ -117,6 +117,9 @@ describe('dry run of the real datasets', () => {
     expect(report).toContain('| Execution accuracy, answerable (easy + medium + hard) | — | — | — | 24/24 (100%) |')
     expect(report).toContain('| Clarification rate on ambiguous | — | — | — | 4/4 (100%) |')
     expect(report).toContain('(dry run)')
+    // baseline is not run (20.4): its prompt size is measured for the report without a provider call.
+    expect(report).toMatch(/\| baseline \(not run\) \| largest generate prompt: [\d,]+ characters ≈ [\d,]+ tokens \|/)
+    expect(report).toMatch(/\| full \| [\d,]+ tokens per question \(average\) \| [\d,]+ \|/)
     expect(report.split('\n').filter((line) => /\| *\|/.test(line))).toEqual([]) // no empty table cells
   })
 

@@ -1,6 +1,7 @@
 import request from 'supertest'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp } from '../../src/app.js'
+import { offlineQuestionDeps } from '../helpers/http.js'
 import { captureLogger } from '../helpers/log-capture.js'
 
 // Database pings are mocked here to cover the degraded paths.
@@ -14,7 +15,7 @@ vi.mock('../../src/safety/executor.js', () => ({ pingReader: pings.reader }))
 
 function testApp(): { app: ReturnType<typeof createApp>; lines: string[] } {
   const { logger, lines } = captureLogger()
-  return { app: createApp({ logger, clientOrigin: 'http://localhost:5173', trustProxy: 0 }), lines }
+  return { app: createApp({ logger, clientOrigin: 'http://localhost:5173', trustProxy: 0, questionDeps: offlineQuestionDeps(), rateLimitPerMinute: 1000 }), lines }
 }
 
 describe('GET /api/health (mocked databases)', () => {

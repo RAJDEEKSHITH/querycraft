@@ -1,7 +1,7 @@
 import { and, eq, inArray, sql } from 'drizzle-orm'
 import { getEnv } from '../config/env.js'
 import { getAppDb } from '../db/app.js'
-import { dailyUsage } from '../db/schema.js'
+import { dailyUsage, questions } from '../db/schema.js'
 import { microUsdToNumeric } from '../lib/cost.js'
 import { AppError } from '../lib/errors.js'
 import type { RequestSource } from './audit.service.js'
@@ -102,5 +102,40 @@ export async function assertWithinBudget(source: RequestSource): Promise<void> {
   }
   if ((await budgetedTokensToday()) >= env.DAILY_TOKEN_BUDGET) {
     throw new AppError('BUDGET_EXCEEDED', 'The daily usage limit has been reached. Please try again tomorrow.')
+  }
+}
+
+export interface UsageReport {
+  date: string
+  /** LLM tokens of the budgeted sources (app + MCP). */
+  llmTokens: number
+  tokenBudget: number
+  embeddingRequests: number
+  /** Questions created today (UTC) by status, all sources (questions carry no source). */
+  questionsByStatus: Record<string, number>
+}
+
+/** Admin usage for today, UTC (14.2). */
+export async function usageToday(): Promise<UsageReport> {
+  const db = getAppDb()
+  const [usage] = await db
+    .select({
+      date: sql<string>`${UTC_TODAY}::text`,
+      llmTokens: sql<string>`coalesce(sum(${dailyUsage.llmTokens}) FILTER (WHERE ${inArray(dailyUsage.source, [...BUDGETED_SOURCES])}), 0)`,
+      embeddingRequests: sql<string>`coalesce(sum(${dailyUsage.embeddingRequests}) FILTER (WHERE ${inArray(dailyUsage.source, [...BUDGETED_SOURCES])}), 0)`,
+    })
+    .from(dailyUsage)
+    .where(eq(dailyUsage.day, UTC_TODAY))
+  const byStatus = await db
+    .select({ status: questions.status, count: sql<string>`count(*)` })
+    .from(questions)
+    .where(sql`(${questions.createdAt} AT TIME ZONE 'UTC')::date = ${UTC_TODAY}`)
+    .groupBy(questions.status)
+  return {
+    date: usage?.date ?? new Date().toISOString().slice(0, 10),
+    llmTokens: Number(usage?.llmTokens ?? 0),
+    tokenBudget: getEnv().DAILY_TOKEN_BUDGET,
+    embeddingRequests: Number(usage?.embeddingRequests ?? 0),
+    questionsByStatus: Object.fromEntries(byStatus.map((r) => [r.status, Number(r.count)])),
   }
 }

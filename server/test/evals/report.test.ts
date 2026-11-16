@@ -174,6 +174,28 @@ describe('selectRuns', () => {
     expect(report).toContain("**does not fit the model's limits**, so no requests were made")
   })
 
+  it('reports a baseline that was not run with its fit-check prompt size next to the retrieval configs', () => {
+    const fit = { model: 'openai/gpt-oss-120b', promptChars: 29050, estimatedPromptTokens: 7263, reservedCompletionTokens: 500, tpm: 8000, fits: true }
+    const ids = questionItems.map((i) => i.id)
+    const run: RunFile = { header: header('+schema', '20261116-100000-dddd', '2026-11-16T10:00:00.000Z', ids), items: questionItems }
+    const report = renderReport(selectRuns([run]), new Date('2026-11-16T12:00:00Z'), fit)
+    expect(report).toContain('| Run | not run | 20261116-100000-dddd | not run | not run |')
+    expect(report).toContain('## Prompt size')
+    expect(report).toContain('`baseline` (no schema retrieval) is not run')
+    expect(report).toContain('| baseline (not run) | largest generate prompt: 29,050 characters ≈ 7,263 tokens | — |')
+    // questionItems: seven items at 900 prompt tokens and one at 2,900 → average 1,150, largest 2,900.
+    expect(report).toContain('| +schema | 1,150 tokens per question (average) | 2,900 |')
+    expect(report).not.toContain('| full | ')
+    expect(report.indexOf('## Prompt size')).toBeLessThan(report.indexOf('## Item outcomes'))
+  })
+
+  it('omits the not-run baseline row once a baseline run exists or no measurement is given', () => {
+    const fit = { model: 'openai/gpt-oss-120b', promptChars: 40000, estimatedPromptTokens: 10000, reservedCompletionTokens: 500, tpm: 8000, fits: false }
+    const baseline: RunFile = { header: header('baseline', '20261114-090000-eeee', '2026-11-14T09:00:00.000Z', ['q01'], { fit }), items: [] }
+    expect(renderReport(selectRuns([baseline]), new Date('2026-11-14T12:00:00Z'), fit)).not.toContain('baseline (not run)')
+    expect(renderReport(selectRuns([]), new Date('2026-11-14T12:00:00Z'))).not.toContain('## Prompt size')
+  })
+
   it('renders the attack section with unsafe executions first', () => {
     const items = [
       item('a02', 'write', { status: 'blocked', errorCode: 'NOT_SELECT', executedQueries: 0, comparison: null }),

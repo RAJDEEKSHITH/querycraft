@@ -32,6 +32,19 @@ export interface AgentDeps {
    * the checkpointed state (10.3: result rows are not persisted).
    */
   rows: Map<string, unknown[][]>
+  /**
+   * Optional observer for live progress (SSE `step` events, 14.3), called when a
+   * node starts and when it completes. It only observes: it never changes state,
+   * prompts, decisions or retries. The evaluation runner passes none.
+   */
+  onStep?: ((event: StepEvent) => void) | undefined
+}
+
+/** A node started or completed (SSE `step`, IMPLEMENTATION.md 14.3). */
+export interface StepEvent {
+  node: NodeName
+  status: 'started' | 'completed'
+  detail?: Record<string, unknown> | undefined
 }
 
 /** Payload of the `clarify` interrupt. */
@@ -67,13 +80,22 @@ interface Step {
   detail?: Record<string, unknown>
 }
 
-/** Records a trace entry when the node completes (interrupted nodes re-run on resume). */
-function traced(node: NodeName, run: (state: State) => Promise<Step>): (state: State) => Promise<Update> {
+/**
+ * Records a trace entry when the node completes (interrupted nodes re-run on resume)
+ * and reports start and completion to the optional observer.
+ */
+function tracedNode(
+  node: NodeName,
+  run: (state: State) => Promise<Step>,
+  onStep: AgentDeps['onStep'],
+): (state: State) => Promise<Update> {
   return async (state) => {
     const startedAt = new Date().toISOString()
     const started = performance.now()
+    onStep?.({ node, status: 'started' })
     const step = await run(state)
     const entry = { node, startedAt, durationMs: Math.round(performance.now() - started) }
+    onStep?.(step.detail === undefined ? { node, status: 'completed' } : { node, status: 'completed', detail: step.detail })
     return { ...step.update, trace: [step.detail === undefined ? entry : { ...entry, detail: step.detail }] }
   }
 }
@@ -124,6 +146,8 @@ function requireValue<T>(value: T | null, what: string): T {
 
 export function buildAgentGraph(deps: AgentDeps) {
   const env = getEnv()
+  const traced = (node: NodeName, run: (state: State) => Promise<Step>): ((state: State) => Promise<Update>) =>
+    tracedNode(node, run, deps.onStep)
 
   const inputGuard = traced('input_guard', (state) => {
     const question = stripControlCharacters(state.question).trim()

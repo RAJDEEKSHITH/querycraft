@@ -1,6 +1,6 @@
 # QueryCraft evaluation report
 
-Generated 2026-11-14 09:59 UTC by `pnpm eval:run` from its run files (`server/evals/reports/<runId>-<config>.jsonl` for real runs). Results are reported as measured; there is no accuracy target (IMPLEMENTATION.md section 20).
+Generated 2026-11-16 13:14 UTC by `pnpm eval:run` from its run files (`server/evals/reports/<runId>-<config>.jsonl` for real runs). Results are reported as measured; there is no accuracy target (IMPLEMENTATION.md section 20).
 
 Execution accuracy: the gold SQL and the generated SQL are both executed through the safety pipeline, and their rows are compared as multisets (in order only when an item says order matters), with numbers rounded to 2 decimals, column names ignored and the column count required to match. Each configuration shows its newest complete run.
 
@@ -8,23 +8,38 @@ Execution accuracy: the gold SQL and the generated SQL are both executed through
 
 | Metric | baseline | +schema | +context | full |
 |---|---|---|---|---|
-| Run | not run | not run | not run | 20261114-094653-5b84 |
-| Execution accuracy, answerable (easy + medium + hard) | — | — | — | 21/24 (88%) |
-| — easy | — | — | — | 8/8 (100%) |
-| — medium | — | — | — | 8/10 (80%) |
-| — hard | — | — | — | 5/6 (83%) |
-| Clarification rate on ambiguous | — | — | — | 3/4 (75%) |
-| Correct refusal on unanswerable | — | — | — | 2/2 (100%) |
-| All items as expected | — | — | — | 26/30 (87%) |
-| False-block rate (answerable items blocked) | — | — | — | 0/24 (0%) |
-| Unnecessary clarifications | — | — | — | 1 |
-| Average SQL attempts (items with SQL) | — | — | — | 1.00 |
-| Approvals required (above the soft cost limit) | — | — | — | 0 |
-| Latency p50 | — | — | — | 16,131 ms |
-| Latency p95 | — | — | — | 19,857 ms |
-| Average LLM tokens per question | — | — | — | 2,734 |
-| Unsafe executions | — | — | — | 0 |
-| Failed runs (by code) | — | — | — | 0 |
+| Run | not run | 20261116-130201-0fff | 20261116-130756-9ba1 | 20261114-094653-5b84 |
+| Execution accuracy, answerable (easy + medium + hard) | — | 13/24 (54%) | 21/24 (88%) | 21/24 (88%) |
+| — easy | — | 7/8 (88%) | 8/8 (100%) | 8/8 (100%) |
+| — medium | — | 5/10 (50%) | 8/10 (80%) | 8/10 (80%) |
+| — hard | — | 1/6 (17%) | 5/6 (83%) | 5/6 (83%) |
+| Clarification rate on ambiguous | — | 1/4 (25%) | 2/4 (50%) | 3/4 (75%) |
+| Correct refusal on unanswerable | — | 2/2 (100%) | 2/2 (100%) | 2/2 (100%) |
+| All items as expected | — | 16/30 (53%) | 25/30 (83%) | 26/30 (87%) |
+| False-block rate (answerable items blocked) | — | 0/24 (0%) | 0/24 (0%) | 0/24 (0%) |
+| Unnecessary clarifications | — | 0 | 0 | 1 |
+| Average SQL attempts (items with SQL) | — | 1.00 | 1.00 | 1.00 |
+| Approvals required (above the soft cost limit) | — | 0 | 0 | 0 |
+| Latency p50 | — | 10,907 ms | 13,037 ms | 16,131 ms |
+| Latency p95 | — | 16,988 ms | 20,633 ms | 19,857 ms |
+| Average LLM tokens per question | — | 2,063 | 2,744 | 2,734 |
+| Unsafe executions | — | 0 | 0 | 0 |
+| Failed runs (by code) | — | MAX_ATTEMPTS 1 | 0 | 0 |
+
+Latency is the processing time per question and includes waiting for provider rate limits (free-tier tokens per minute), so it reflects the free-tier setup, not the pipeline alone.
+
+## Prompt size
+
+`baseline` (no schema retrieval) is not run: it would cost about 240k tokens of the free-tier daily quota (IMPLEMENTATION.md 20.4). Its prompt size is measured instead and compared with the prompt tokens measured in the runs that use retrieval.
+
+| Config | Prompt size | Largest per question (tokens) | How measured |
+|---|---|---|---|
+| baseline (not run) | largest generate prompt: 29,050 characters ≈ 7,263 tokens | — | fit check: every allowed table and column, built exactly as the agent builds it, 4 characters per token; no provider call |
+| +schema | 1,628 tokens per question (average) | 2,114 | counted by the provider; all LLM calls of a question (SQL generation and answer, every attempt) |
+| +context | 2,273 tokens per question (average) | 2,698 | counted by the provider; all LLM calls of a question (SQL generation and answer, every attempt) |
+| full | 2,274 tokens per question (average) | 2,722 | counted by the provider; all LLM calls of a question (SQL generation and answer, every attempt) |
+
+The baseline figure is one SQL-generation request; the retrieval figures add the answer request and any retries, so they overstate the retrieval prompt per request.
 
 ## Item outcomes — `questions.jsonl`
 
@@ -32,36 +47,36 @@ Execution accuracy: the gold SQL and the generated SQL are both executed through
 
 | Item | Category | baseline | +schema | +context | full |
 |---|---|---|---|---|---|
-| q01 | easy | — | — | — | ✓ answered |
-| q02 | easy | — | — | — | ✓ answered |
-| q03 | easy | — | — | — | ✓ answered |
-| q04 | easy | — | — | — | ✓ answered |
-| q05 | easy | — | — | — | ✓ answered |
-| q06 | easy | — | — | — | ✓ answered |
-| q07 | easy | — | — | — | ✓ answered |
-| q08 | easy | — | — | — | ✓ answered |
-| q09 | medium | — | — | — | ✓ answered |
-| q10 | medium | — | — | — | ✓ answered |
-| q11 | medium | — | — | — | ✗ awaiting_clarification (not_answered) |
-| q12 | medium | — | — | — | ✓ answered |
-| q13 | medium | — | — | — | ✓ answered |
-| q14 | medium | — | — | — | ✗ cannot_answer (not_answered) |
-| q15 | medium | — | — | — | ✓ answered |
-| q16 | medium | — | — | — | ✓ answered |
-| q17 | medium | — | — | — | ✓ answered |
-| q18 | medium | — | — | — | ✓ answered |
-| q19 | hard | — | — | — | ✓ answered |
-| q20 | hard | — | — | — | ✓ answered |
-| q21 | hard | — | — | — | ✗ answered (rows) |
-| q22 | hard | — | — | — | ✓ answered |
-| q23 | hard | — | — | — | ✓ answered |
-| q24 | hard | — | — | — | ✓ answered |
-| q25 | ambiguous | — | — | — | ✓ awaiting_clarification |
-| q26 | ambiguous | — | — | — | ✓ awaiting_clarification |
-| q27 | ambiguous | — | — | — | ✓ awaiting_clarification |
-| q28 | ambiguous | — | — | — | ✗ answered |
-| q29 | unanswerable | — | — | — | ✓ cannot_answer |
-| q30 | unanswerable | — | — | — | ✓ cannot_answer |
+| q01 | easy | — | ✓ answered | ✓ answered | ✓ answered |
+| q02 | easy | — | ✓ answered | ✓ answered | ✓ answered |
+| q03 | easy | — | ✓ answered | ✓ answered | ✓ answered |
+| q04 | easy | — | ✓ answered | ✓ answered | ✓ answered |
+| q05 | easy | — | ✓ answered | ✓ answered | ✓ answered |
+| q06 | easy | — | ✓ answered | ✓ answered | ✓ answered |
+| q07 | easy | — | ✗ answered (rows) | ✓ answered | ✓ answered |
+| q08 | easy | — | ✓ answered | ✓ answered | ✓ answered |
+| q09 | medium | — | ✓ answered | ✓ answered | ✓ answered |
+| q10 | medium | — | ✓ answered | ✓ answered | ✓ answered |
+| q11 | medium | — | ✗ cannot_answer (not_answered) | ✗ cannot_answer (not_answered) | ✗ awaiting_clarification (not_answered) |
+| q12 | medium | — | ✓ answered | ✓ answered | ✓ answered |
+| q13 | medium | — | ✗ cannot_answer (not_answered) | ✓ answered | ✓ answered |
+| q14 | medium | — | ✗ answered (rows) | ✗ cannot_answer (not_answered) | ✗ cannot_answer (not_answered) |
+| q15 | medium | — | ✓ answered | ✓ answered | ✓ answered |
+| q16 | medium | — | ✗ answered (rows) | ✓ answered | ✓ answered |
+| q17 | medium | — | ✓ answered | ✓ answered | ✓ answered |
+| q18 | medium | — | ✗ answered (row_count) | ✓ answered | ✓ answered |
+| q19 | hard | — | ✗ answered (rows) | ✓ answered | ✓ answered |
+| q20 | hard | — | ✗ answered (rows) | ✓ answered | ✓ answered |
+| q21 | hard | — | ✗ cannot_answer (not_answered) | ✗ answered (rows) | ✗ answered (rows) |
+| q22 | hard | — | ✓ answered | ✓ answered | ✓ answered |
+| q23 | hard | — | ✗ answered (row_count) | ✓ answered | ✓ answered |
+| q24 | hard | — | ✗ failed (not_answered) | ✓ answered | ✓ answered |
+| q25 | ambiguous | — | ✗ answered | ✓ awaiting_clarification | ✓ awaiting_clarification |
+| q26 | ambiguous | — | ✗ answered | ✗ cannot_answer | ✓ awaiting_clarification |
+| q27 | ambiguous | — | ✓ awaiting_clarification | ✓ awaiting_clarification | ✓ awaiting_clarification |
+| q28 | ambiguous | — | ✗ cannot_answer | ✗ answered | ✗ answered |
+| q29 | unanswerable | — | ✓ cannot_answer | ✓ cannot_answer | ✓ cannot_answer |
+| q30 | unanswerable | — | ✓ cannot_answer | ✓ cannot_answer | ✓ cannot_answer |
 
 ## Attack set — `attacks.jsonl` (`full` config)
 
@@ -106,6 +121,8 @@ Execution accuracy: the gold SQL and the generated SQL are both executed through
 
 | Config | Run id | State | Started | Last item | Models (SQL / answer / embedding) | Settings | Dataset hash |
 |---|---|---|---|---|---|---|---|
+| +schema | 20261116-130201-0fff | complete | 2026-11-16 | 2026-11-16 | openai/gpt-oss-120b / openai/gpt-oss-20b / gemini-embedding-001 | 3 attempts, cost limits 50,000 / 500,000 | 650160ce83e1 |
+| +context | 20261116-130756-9ba1 | complete | 2026-11-16 | 2026-11-16 | openai/gpt-oss-120b / openai/gpt-oss-20b / gemini-embedding-001 | 3 attempts, cost limits 50,000 / 500,000 | 650160ce83e1 |
 | full | 20261114-094653-5b84 | complete | 2026-11-14 | 2026-11-14 | openai/gpt-oss-120b / openai/gpt-oss-20b / gemini-embedding-001 | 3 attempts, cost limits 50,000 / 500,000 | 650160ce83e1 |
 | attacks | 20261114-095446-f101 | complete | 2026-11-14 | 2026-11-14 | openai/gpt-oss-120b / openai/gpt-oss-20b / gemini-embedding-001 | 3 attempts, cost limits 50,000 / 500,000 | 7566fe3af0d4 |
 

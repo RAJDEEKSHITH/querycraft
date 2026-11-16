@@ -2,11 +2,14 @@ import { readdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { ABLATION_CONFIGS, CONFIG_NAMES, type ConfigName } from './configs.js'
 import { ATTACK_CATEGORIES } from './dataset.js'
-import { isComplete, readRunFile, type ItemResult, type RunFile } from './run-file.js'
+import { isComplete, readRunFile, type FitCheck, type ItemResult, type RunFile } from './run-file.js'
 
 // REPORT.md generator (IMPLEMENTATION.md 20.3, 20.5). Built only from run files:
 // for each config the newest complete run is reported. Nothing is estimated or
-// typed in by hand; a config without a complete run says so.
+// typed in by hand; a config without a complete run says so. The one exception is
+// the baseline prompt size: `baseline` is not run (IMPLEMENTATION.md 20.4), so its
+// fit-check measurement is passed in and shown next to the measured prompt tokens
+// of the retrieval configs.
 
 export interface Selection {
   /** Newest complete run per config. */
@@ -250,6 +253,46 @@ function ablationSection(selection: Selection): string[] {
   return lines
 }
 
+function promptSizeSection(selection: Selection, baselineFit: FitCheck | null): string[] {
+  const baselineRun = selection.complete.baseline ?? selection.inProgress.baseline
+  const rows: string[][] = []
+  if (baselineRun === undefined && baselineFit !== null) {
+    rows.push([
+      'baseline (not run)',
+      `largest generate prompt: ${baselineFit.promptChars.toLocaleString('en-US')} characters ≈ ${baselineFit.estimatedPromptTokens.toLocaleString('en-US')} tokens`,
+      '—',
+      'fit check: every allowed table and column, built exactly as the agent builds it, 4 characters per token; no provider call',
+    ])
+  }
+  for (const config of ABLATION_CONFIGS) {
+    if (config === 'baseline') continue
+    const run = selection.complete[config]
+    if (run === undefined) continue
+    const prompts = run.items.map((i) => i.promptTokens)
+    rows.push([
+      config,
+      `${num(mean(prompts), 0)} tokens per question (average)`,
+      num(prompts.length === 0 ? null : Math.max(...prompts), 0),
+      'counted by the provider; all LLM calls of a question (SQL generation and answer, every attempt)',
+    ])
+  }
+  if (rows.length === 0) return []
+  return [
+    '## Prompt size',
+    '',
+    ...(baselineRun === undefined && baselineFit !== null
+      ? [
+          '`baseline` (no schema retrieval) is not run: it would cost about 240k tokens of the free-tier daily quota (IMPLEMENTATION.md 20.4). Its prompt size is measured instead and compared with the prompt tokens measured in the runs that use retrieval.',
+          '',
+        ]
+      : []),
+    ...table(['Config', 'Prompt size', 'Largest per question (tokens)', 'How measured'], rows),
+    '',
+    'The baseline figure is one SQL-generation request; the retrieval figures add the answer request and any retries, so they overstate the retrieval prompt per request.',
+    '',
+  ]
+}
+
 function attackSection(selection: Selection): string[] {
   const run = selection.complete.attacks
   const lines = ['## Attack set — `attacks.jsonl` (`full` config)', '']
@@ -367,7 +410,8 @@ function limitsSection(selection: Selection): string[] {
   ]
 }
 
-export function renderReport(selection: Selection, generatedAt: Date): string {
+/** `baselineFit`: the baseline fit check, shown while `baseline` has no run (20.4). */
+export function renderReport(selection: Selection, generatedAt: Date, baselineFit: FitCheck | null = null): string {
   return [
     '# QueryCraft evaluation report',
     '',
@@ -376,6 +420,7 @@ export function renderReport(selection: Selection, generatedAt: Date): string {
     'Execution accuracy: the gold SQL and the generated SQL are both executed through the safety pipeline, and their rows are compared as multisets (in order only when an item says order matters), with numbers rounded to 2 decimals, column names ignored and the column count required to match. Each configuration shows its newest complete run.',
     '',
     ...ablationSection(selection),
+    ...promptSizeSection(selection, baselineFit),
     ...itemSection(selection),
     ...attackSection(selection),
     ...runsSection(selection),
@@ -383,7 +428,12 @@ export function renderReport(selection: Selection, generatedAt: Date): string {
   ].join('\n')
 }
 
-export async function writeReport(reportsDir: string, reportPath: string, now = new Date()): Promise<void> {
+export async function writeReport(
+  reportsDir: string,
+  reportPath: string,
+  now = new Date(),
+  baselineFit: FitCheck | null = null,
+): Promise<void> {
   const selection = selectRuns(await readRuns(reportsDir))
-  await writeFile(reportPath, renderReport(selection, now))
+  await writeFile(reportPath, renderReport(selection, now, baselineFit))
 }

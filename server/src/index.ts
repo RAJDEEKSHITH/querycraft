@@ -4,7 +4,7 @@ import { formatInvalidEnvMessage, parseEnv } from './config/env.js'
 import { closeAppPool } from './db/app.js'
 import { createLogger } from './lib/logger.js'
 import { closeReaderConnections } from './safety/executor.js'
-import { recoverStaleRuns } from './services/question.service.js'
+import { createQuestionDeps, recoverStaleRuns } from './services/question.service.js'
 
 const parsed = parseEnv(process.env)
 if (!parsed.ok) {
@@ -15,7 +15,19 @@ if (!parsed.ok) {
 
 const env = parsed.env
 const logger = createLogger(env.LOG_LEVEL)
-const app = createApp({ logger, clientOrigin: env.CLIENT_ORIGIN, trustProxy: env.TRUST_PROXY })
+// The question runner needs the LangGraph checkpointer, whose setup needs the app
+// database; without it the server cannot answer questions, so it does not start.
+const questionDeps = await createQuestionDeps(logger).catch((err: unknown) => {
+  logger.fatal({ err }, 'question runner setup failed (is the app database up?)')
+  process.exit(1)
+})
+const app = createApp({
+  logger,
+  clientOrigin: env.CLIENT_ORIGIN,
+  trustProxy: env.TRUST_PROXY,
+  questionDeps,
+  rateLimitPerMinute: env.RATE_LIMIT_PER_MINUTE,
+})
 
 // Questions left `running` by a previous process can never finish (IMPLEMENTATION.md 12.6).
 recoverStaleRuns().then(

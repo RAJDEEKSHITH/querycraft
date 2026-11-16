@@ -156,10 +156,8 @@ async function storeEmbeddings(pending: readonly Pending[], vectors: readonly nu
   })
 }
 
-export async function indexKnowledge(input: KnowledgeInput, embeddings: EmbeddingsClient): Promise<IndexStats> {
-  await checkInput(input)
-  const deleted = await syncRows(input)
-  const pending = await pendingEmbeddings(embeddings.model, embeddings.dimensions)
+/** Embeds the pending rows in batches, storing each batch as it completes. */
+async function embedPending(pending: readonly Pending[], embeddings: EmbeddingsClient): Promise<void> {
   for (let start = 0; start < pending.length; start += MAX_EMBEDDING_BATCH) {
     const batch = pending.slice(start, start + MAX_EMBEDDING_BATCH)
     const vectors = await embeddings.embed(
@@ -168,6 +166,33 @@ export async function indexKnowledge(input: KnowledgeInput, embeddings: Embeddin
     )
     await storeEmbeddings(batch, vectors)
   }
+}
+
+export interface ReindexStats {
+  tables: number
+  examples: number
+  glossary: number
+  embedded: number
+}
+
+/**
+ * Admin re-index (IMPLEMENTATION.md 14.2): re-embeds only the rows in the app
+ * database whose text changed since they were embedded (or that have no embedding),
+ * after admin edits. Unlike kb:index it reads no seed files and changes no rows'
+ * text. Unchanged rows cost no embedding call.
+ */
+export async function reindexChanged(embeddings: EmbeddingsClient): Promise<ReindexStats> {
+  const pending = await pendingEmbeddings(embeddings.model, embeddings.dimensions)
+  await embedPending(pending, embeddings)
+  const count = (kind: Kind): number => pending.filter((p) => p.kind === kind).length
+  return { tables: count('table'), examples: count('example'), glossary: count('glossary'), embedded: pending.length }
+}
+
+export async function indexKnowledge(input: KnowledgeInput, embeddings: EmbeddingsClient): Promise<IndexStats> {
+  await checkInput(input)
+  const deleted = await syncRows(input)
+  const pending = await pendingEmbeddings(embeddings.model, embeddings.dimensions)
+  await embedPending(pending, embeddings)
   return {
     tables: input.schema.tables.length,
     examples: input.examples.length,

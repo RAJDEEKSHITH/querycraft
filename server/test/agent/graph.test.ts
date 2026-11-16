@@ -160,7 +160,7 @@ beforeAll(async () => {
 })
 
 beforeEach(async () => {
-  await getAppPool().query('TRUNCATE audit_events, questions, conversations, daily_usage')
+  await getAppPool().query('TRUNCATE feedback, audit_events, questions, conversations, daily_usage')
 })
 
 afterAll(async () => {
@@ -194,6 +194,21 @@ describe('agent graph paths (mock LLM)', () => {
     expect(h.embeddingProvider.requests).toBe(1)
     expect(h.answerCalls()).toBe(1)
     expect(h.provider.requests.find((r) => r.format === undefined)?.model).toBe('answer-model')
+  })
+
+  it('onStep observes every node start and completion without changing the run (M5 decision 2)', async () => {
+    const plain = await ask('Which store has id 292?', [sqlReply(CHEAP)])
+    const steps: { node: string; status: string }[] = []
+    const observed = await ask('Which store has id 292?', [sqlReply(CHEAP)], {
+      source: 'app',
+      onStep: (e) => steps.push({ node: e.node, status: e.status }),
+    })
+    expect(observed.outcome).toEqual(plain.outcome)
+    const trace = (await row(observed.id)).trace.map((t) => t.node)
+    expect(trace).toEqual((await row(plain.id)).trace.map((t) => t.node))
+    expect(steps.filter((s) => s.status === 'completed').map((s) => s.node)).toEqual(trace)
+    expect(steps.filter((s) => s.status === 'started').map((s) => s.node)).toEqual(trace)
+    expect(steps[0]).toEqual({ node: 'input_guard', status: 'started' })
   })
 
   it('never writes result rows into the checkpoint tables', async () => {
