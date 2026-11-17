@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react'
+import { Button } from '../../components/Button'
 import { AlertIcon, InfoIcon, LogoMark } from '../../components/icons'
 import { AnswerSkeleton } from '../../components/Skeleton'
 import type { Exchange, Turn } from '../../stores/ask-reducer'
+import { formatCount } from '../../lib/units'
 import { useAskStore } from '../../stores/askStore'
 import { AnswerPanel } from './AnswerPanel'
 import { ApprovalCard } from './ApprovalCard'
@@ -15,13 +17,10 @@ import { StepSummary } from './StepSummary'
 
 const FINISHED = new Set(['answered', 'blocked', 'cannot_answer', 'failed', 'cancelled'])
 
-const smallButton =
-  'rounded-lg border border-zinc-300 px-2.5 py-1 text-sm font-medium text-zinc-800 hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-800'
-
 export function UserMessage({ text }: { text: string }) {
   return (
     <div className="qc-fade-in flex justify-end">
-      <p className="max-w-[85%] rounded-2xl rounded-br-md bg-zinc-100 px-4 py-2.5 text-[15px] leading-relaxed break-words whitespace-pre-wrap text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
+      <p className="max-w-[85%] rounded-xl rounded-br-md bg-zinc-100 px-4 py-2.5 text-base leading-relaxed break-words whitespace-pre-wrap text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
         <span className="sr-only">You asked: </span>
         {text}
       </p>
@@ -40,7 +39,7 @@ function ExchangeLine({ exchange }: { exchange: Exchange }) {
   }
   return (
     <p className="text-sm text-zinc-500 dark:text-zinc-400">
-      Estimated cost {Math.round(exchange.estimatedCost).toLocaleString()}:{' '}
+      Estimated cost {formatCount(exchange.estimatedCost)}:{' '}
       <span className="font-medium text-zinc-800 dark:text-zinc-200">{exchange.approved ? 'you approved it' : 'you denied it'}</span>
     </p>
   )
@@ -117,12 +116,12 @@ export function ThreadTurn({ turn }: { turn: Turn }) {
             <div role="alert">
               <Notice icon="alert">
                 <p>
-                  {outcome.message} <span className="font-mono text-xs text-zinc-500">({outcome.code})</span>
+                  {outcome.message} <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400">({outcome.code})</span>
                 </p>
                 {outcome.code === 'STREAM_LOST' && (
-                  <button type="button" onClick={() => reconnect(turn.questionId)} className={smallButton}>
+                  <Button size="sm" onClick={() => reconnect(turn.questionId)}>
                     Reconnect
-                  </button>
+                  </Button>
                 )}
               </Notice>
             </div>
@@ -131,9 +130,9 @@ export function ThreadTurn({ turn }: { turn: Turn }) {
             <div role="status">
               <Notice icon="info">
                 <p>You stopped waiting. The question is still running on the server; its result is saved when it finishes.</p>
-                <button type="button" onClick={() => reconnect(turn.questionId)} className={smallButton}>
+                <Button size="sm" onClick={() => reconnect(turn.questionId)}>
                   Show result
-                </button>
+                </Button>
               </Notice>
             </div>
           )}

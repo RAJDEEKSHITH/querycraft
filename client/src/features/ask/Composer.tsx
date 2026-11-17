@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { Button } from '../../components/Button'
 import { ArrowUpIcon, StopIcon } from '../../components/icons'
 import { activeTurn } from '../../stores/ask-reducer'
 import { useAskStore } from '../../stores/askStore'
@@ -67,21 +68,17 @@ export function Composer() {
             {running ? (
               <>
                 <span>Working on your question…</span>
-                <button
-                  type="button"
-                  onClick={() => stopWaiting(active.questionId)}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-zinc-300 px-2.5 py-1 font-medium text-zinc-700 hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                >
-                  <StopIcon className="size-3" />
+                <Button size="sm" onClick={() => stopWaiting(active.questionId)}>
+                  <StopIcon className="size-3.5" />
                   Stop waiting
-                </button>
+                </Button>
               </>
             ) : (
               <span>Answer the question above to continue.</span>
             )}
           </div>
         )}
-        <div className="relative rounded-2xl border border-zinc-300 bg-white shadow-sm transition-colors focus-within:border-zinc-400 focus-within:ring-2 focus-within:ring-indigo-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:focus-within:border-zinc-600">
+        <div className="relative rounded-xl border border-zinc-300 bg-white shadow-sm transition-colors focus-within:border-zinc-400 focus-within:ring-2 focus-within:ring-indigo-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:focus-within:border-zinc-600">
           <label htmlFor="composer" className="sr-only">
             {followUp ? 'Ask a follow-up question' : 'Ask a question about the AdventureWorks database'}
           </label>
@@ -96,21 +93,21 @@ export function Composer() {
             onKeyDown={onKeyDown}
             aria-describedby="composer-hint"
             aria-invalid={tooLong}
-            className="block max-h-[200px] w-full resize-none bg-transparent py-3.5 pr-14 pl-4 text-[15px] leading-relaxed text-zinc-900 placeholder:text-zinc-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-70 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+            className="block max-h-[200px] w-full resize-none bg-transparent py-3.5 pr-14 pl-4 text-base leading-relaxed text-zinc-900 placeholder:text-zinc-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-70 dark:text-zinc-100 dark:placeholder:text-zinc-500"
           />
           <button
             type="submit"
             aria-label="Send question"
             disabled={disabled || empty || tooLong}
-            className="absolute right-2.5 bottom-2.5 inline-flex size-9 items-center justify-center rounded-full bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:bg-zinc-200 disabled:text-zinc-400 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-500"
+            className="qc-focus absolute right-2.5 bottom-2.5 inline-flex size-9 items-center justify-center rounded-full bg-indigo-600 text-white hover:bg-indigo-500 disabled:bg-zinc-200 disabled:text-zinc-400 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-500"
           >
-            <ArrowUpIcon className="size-[18px]" />
+            <ArrowUpIcon />
           </button>
         </div>
         <div id="composer-hint" className="mt-2 flex items-center justify-between gap-3 px-1 text-xs text-zinc-500 dark:text-zinc-400">
           <span>Read-only. Every query is checked and audited.</span>
           {text.length >= COUNTER_FROM && (
-            <span className={`font-mono tabular-nums ${tooLong ? 'font-medium text-red-600 dark:text-red-400' : ''}`}>
+            <span className={`tabular-nums ${tooLong ? 'font-medium text-red-600 dark:text-red-400' : ''}`}>
               {text.length} / {QUESTION_MAX_LENGTH}
               {tooLong ? ' (too long)' : ''}
             </span>

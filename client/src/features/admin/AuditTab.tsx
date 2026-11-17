@@ -36,7 +36,7 @@ function AuditRow({ event }: { event: AuditEventView }) {
       {event.sql !== null && (
         <details>
           <summary className="cursor-pointer text-xs text-zinc-500 select-none dark:text-zinc-400">SQL</summary>
-          <pre className="mt-1 overflow-x-auto rounded bg-zinc-50 p-2 font-mono text-xs whitespace-pre-wrap text-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
+          <pre className="mt-1 overflow-x-auto rounded-md bg-zinc-50 p-2 font-mono text-xs whitespace-pre-wrap text-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
             {event.sql}
           </pre>
         </details>
@@ -89,7 +89,7 @@ export function AuditTab({ token }: { token: string }) {
               type="button"
               aria-pressed={filter === f.value}
               onClick={() => choose(f.value)}
-              className={`rounded px-3 py-1 text-sm focus-visible:outline-2 focus-visible:outline-indigo-500 ${
+              className={`rounded-md px-3 py-1 text-sm qc-focus ${
                 filter === f.value
                   ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
                   : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
@@ -116,7 +116,7 @@ export function AuditTab({ token }: { token: string }) {
         <EmptyState title="No audit events">Every safety decision (allowed or blocked) is recorded here.</EmptyState>
       )}
       {events.length > 0 && (
-        <ul aria-label="Audit events, newest first" className="divide-y divide-zinc-100 rounded-lg border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <ul aria-label="Audit events, newest first" className="divide-y divide-zinc-100 rounded-xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900/60">
           {events.map((e) => (
             <AuditRow key={e.id} event={e} />
           ))}

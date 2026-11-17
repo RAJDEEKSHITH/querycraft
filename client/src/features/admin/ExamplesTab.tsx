@@ -59,7 +59,7 @@ export function ExamplesTab({ token }: { token: string }) {
             id={filterId}
             value={filter}
             onChange={(e) => setFilter(e.target.value === 'all' ? 'all' : (EXAMPLE_STATUSES.find((s) => s === e.target.value) ?? 'pending'))}
-            className="mt-1 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+            className="qc-focus mt-1 h-8 rounded-md border border-zinc-300 bg-white px-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
           >
             {EXAMPLE_STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -75,7 +75,7 @@ export function ExamplesTab({ token }: { token: string }) {
       </div>
 
       {unindexed > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
           <span>
             {unindexed} verified {unindexed === 1 ? 'example has' : 'examples have'} no embedding yet, so retrieval cannot use{' '}
             {unindexed === 1 ? 'it' : 'them'}. Re-index embeds only changed or new entries.

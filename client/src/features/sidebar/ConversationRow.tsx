@@ -46,7 +46,7 @@ export function ConversationRow({ entry, active }: { entry: HistoryEntry; active
       <a
         href={conversationHash(entry.id)}
         aria-current={active ? 'page' : undefined}
-        className={`flex min-h-9 items-center rounded-lg py-2 pr-9 pl-2.5 text-sm focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-500 ${
+        className={`flex min-h-9 items-center rounded-md py-2 pr-9 pl-2.5 text-sm qc-focus-inset ${
           active
             ? 'bg-zinc-200/80 font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50'
             : 'text-zinc-700 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-800/60'
@@ -68,7 +68,7 @@ export function ConversationRow({ entry, active }: { entry: HistoryEntry; active
         aria-haspopup="menu"
         aria-expanded={menuOpen}
         onClick={() => setMenuOpen((open) => !open)}
-        className={`absolute top-1/2 right-1 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-300/60 hover:text-zinc-900 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-100 ${
+        className={`absolute top-1/2 right-1 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-300/60 hover:text-zinc-900 focus-visible:opacity-100 qc-focus dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:text-zinc-100 ${
           menuOpen || active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100'
         }`}
       >
@@ -80,7 +80,7 @@ export function ConversationRow({ entry, active }: { entry: HistoryEntry; active
           aria-label="Conversation options"
           onKeyDown={onMenuKey}
           onBlur={onMenuBlur}
-          className="qc-fade-in absolute top-full right-1 z-20 mt-1 w-56 rounded-lg border border-zinc-200 bg-white p-1 shadow-md dark:border-zinc-700 dark:bg-zinc-900"
+          className="qc-fade-in absolute top-full right-1 z-20 mt-1 w-56 rounded-xl border border-zinc-200 bg-white p-1 shadow-md dark:border-zinc-700 dark:bg-zinc-900"
         >
           <button
             ref={firstItem}
@@ -92,7 +92,7 @@ export function ConversationRow({ entry, active }: { entry: HistoryEntry; active
             <TrashIcon />
             Remove from history
           </button>
-          <p className="px-2.5 pt-0.5 pb-1.5 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+          <p className="px-2.5 pt-0.5 pb-1.5 text-xs leading-snug text-zinc-500 dark:text-zinc-400">
             Only this browser forgets it. Nothing is deleted on the server.
           </p>
         </div>

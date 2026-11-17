@@ -1,4 +1,5 @@
 import { activeLabel, isRetry, nodeLabel, stepNote } from '../lib/steps'
+import { formatCount } from '../lib/units'
 
 export interface TimelineItem {
   node: string
@@ -30,12 +31,12 @@ export function StepTimeline({ steps, live }: { steps: TimelineItem[]; live: boo
               {running ? activeLabel(step.node) : nodeLabel(step.node)}
               <span className="sr-only">{running ? ' (in progress)' : ' (done)'}</span>
               {note !== null && (
-                <span className={`ml-2 text-xs ${retry ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'text-zinc-500 dark:text-zinc-500'}`}>
+                <span className={`ml-2 text-xs ${retry ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'text-zinc-500 dark:text-zinc-400'}`}>
                   {note}
                 </span>
               )}
               {step.durationMs !== undefined && step.durationMs !== null && (
-                <span className="ml-2 font-mono text-[11px] text-zinc-400 dark:text-zinc-500">{Math.round(step.durationMs)} ms</span>
+                <span className="ml-2 text-xs text-zinc-500 tabular-nums dark:text-zinc-400">{formatCount(step.durationMs)} ms</span>
               )}
             </span>
           </li>

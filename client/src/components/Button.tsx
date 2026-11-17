@@ -1,24 +1,55 @@
-import type { ButtonHTMLAttributes } from 'react'
+import type { ComponentProps } from 'react'
 
-type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
+// The app's buttons: four variants, two sizes, one focus ring. Icons inside are size-3.5
+// (sm) or size-4 (md); icon-only buttons use IconButton.
+
+type Variant = 'primary' | 'secondary' | 'ghost' | 'destructive'
+type Size = 'sm' | 'md'
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-600/50 dark:bg-indigo-500 dark:text-zinc-950 dark:hover:bg-indigo-400',
+  // White on indigo-600 is 6.3:1; the same fill in both themes keeps dark mode no heavier.
+  primary: 'bg-indigo-600 text-white hover:bg-indigo-500',
   secondary:
-    'border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800',
-  danger: 'bg-rose-600 text-white hover:bg-rose-700 disabled:bg-rose-600/50 dark:bg-rose-500 dark:hover:bg-rose-400',
-  ghost: 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800',
+    'border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-transparent dark:text-zinc-100 dark:hover:bg-zinc-800',
+  ghost: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
+  destructive: 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400',
 }
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+const SIZES: Record<Size, string> = {
+  sm: 'h-7 gap-1.5 px-2.5 text-xs',
+  md: 'h-8 gap-2 px-3 text-sm',
+}
+
+interface ButtonProps extends ComponentProps<'button'> {
   variant?: Variant
+  size?: Size
 }
 
-export function Button({ variant = 'secondary', className = '', type = 'button', ...props }: ButtonProps) {
+export function Button({ variant = 'secondary', size = 'md', className = '', type = 'button', ...props }: ButtonProps) {
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 ${VARIANTS[variant]} ${className}`}
+      className={`qc-focus inline-flex shrink-0 items-center justify-center rounded-md font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${SIZES[size]} ${VARIANTS[variant]} ${className}`}
+      {...props}
+    />
+  )
+}
+
+interface IconButtonProps extends ComponentProps<'button'> {
+  /** Required: icon-only buttons need an accessible name. */
+  'aria-label': string
+  pressed?: boolean
+}
+
+/** A 32 px icon-only button (icon size-4), ghost style. */
+export function IconButton({ className = '', type = 'button', pressed, ...props }: IconButtonProps) {
+  return (
+    <button
+      type={type}
+      aria-pressed={pressed}
+      className={`qc-focus inline-flex size-8 shrink-0 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 ${
+        pressed === true ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100' : ''
+      } ${className}`}
       {...props}
     />
   )

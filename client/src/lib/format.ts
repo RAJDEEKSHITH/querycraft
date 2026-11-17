@@ -1,15 +1,7 @@
+import { columnKind } from './chart'
+import { formatPlain, inferFormat, type ValueFormat } from './units'
+
 // Display helpers shared by the views.
-
-const numberFormat = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 })
-const compactFormat = new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 })
-
-export function formatNumber(n: number): string {
-  return numberFormat.format(n)
-}
-
-export function formatCompact(n: number): string {
-  return compactFormat.format(n)
-}
 
 /** One result cell as text; SQL NULL is shown by the caller. */
 export function formatCell(value: unknown): string {
@@ -19,26 +11,22 @@ export function formatCell(value: unknown): string {
   return JSON.stringify(value)
 }
 
-// Numeric result cells (display only; rows, charts and copied SQL keep the raw values):
-// integer types get thousands separators; numeric / real / double precision also get
-// exactly 2 decimals. Whole numbers in a date-part column (extract(year …) returns
-// numeric) stay as they are, so 2024 never becomes "2,024.00".
-const INTEGER_TYPES = new Set(['smallint', 'integer', 'bigint'])
-const DECIMAL_TYPES = new Set(['numeric', 'real', 'double precision'])
-const DATE_PART_NAME = /(^|_)(year|yr|quarter|month|week|day|hour)$/i
-const integerCell = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
-const decimalCell = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+// A date or timestamp at midnight is shown as its date only ("2024-01-01").
+const MIDNIGHT = /^(\d{4}-\d{2}-\d{2})(?:[ T]00:00(?::00(?:\.0+)?)?(?:Z|[+-]00(?::?00)?)?)$/
 
-/** One result cell for display, using its column's type and name. */
-export function formatResultCell(value: unknown, column: { name: string; type: string }): string {
-  const base = column.type.replace(/\(.*\)$/, '').trim().toLowerCase()
-  const integer = INTEGER_TYPES.has(base)
-  if (!integer && !DECIMAL_TYPES.has(base)) return formatCell(value)
+/**
+ * One result cell for display (rows, charts and copied SQL keep the raw values). Numeric
+ * cells follow their column's format (lib/units.ts): money 2 decimals, percents 1, counts 0,
+ * thousands separators; ids and whole years stay as they are. The header carries the unit.
+ */
+export function formatResultCell(value: unknown, column: { name: string; type: string }, format?: ValueFormat): string {
+  const kind = columnKind(column.type)
+  if (kind === 'date' && typeof value === 'string') return MIDNIGHT.exec(value)?.[1] ?? value
+  if (kind !== 'number') return formatCell(value)
   const n = typeof value === 'number' ? value : typeof value === 'string' && value.trim() !== '' ? Number(value) : NaN
   // Not a finite number, or too large to format exactly: show the raw value.
   if (!Number.isFinite(n) || Math.abs(n) > Number.MAX_SAFE_INTEGER) return formatCell(value)
-  if (Number.isInteger(n) && DATE_PART_NAME.test(column.name)) return String(n)
-  return integer ? integerCell.format(n) : decimalCell.format(n)
+  return formatPlain(n, format ?? inferFormat(column, [value]))
 }
 
 export function formatDateTime(iso: string): string {

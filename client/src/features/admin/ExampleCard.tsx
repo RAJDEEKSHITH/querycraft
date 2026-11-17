@@ -9,7 +9,7 @@ import type { ExampleView } from '../../types/api'
 import { adminErrorText } from './admin-errors'
 
 const inputClass =
-  'mt-1 block w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100'
+  'mt-1 block w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100'
 
 interface ExampleCardProps {
   example: ExampleView
@@ -53,7 +53,7 @@ export function ExampleCard({ example, token, onChanged }: ExampleCardProps) {
   }
 
   return (
-    <article className="space-y-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+    <article className="space-y-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
       <header className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
         <StatusBadge status={example.status} />
         <span>source: {example.source}</span>
@@ -121,7 +121,7 @@ export function ExampleCard({ example, token, onChanged }: ExampleCardProps) {
               </Button>
             )}
             {example.status !== 'rejected' && (
-              <Button variant="danger" disabled={saving} onClick={() => save({ status: 'rejected' })}>
+              <Button variant="destructive" disabled={saving} onClick={() => save({ status: 'rejected' })}>
                 Reject
               </Button>
             )}

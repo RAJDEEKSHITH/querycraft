@@ -45,8 +45,12 @@ describe('ResultTable with real rows', () => {
         truncated
       />,
     )
-    expect(out).toContain('2024-01-01 00:00:00')
+    expect(out).toContain('>2024-01-01<')
+    expect(out).not.toContain('00:00:00')
     expect(out).toContain('2,217,564.76')
+    // Readable headers with the unit; the raw name and type on hover.
+    expect(out).toContain('>Revenue (USD)<')
+    expect(out).toContain('title="revenue (numeric)"')
     expect(out).toContain('cut at the row limit')
   })
 

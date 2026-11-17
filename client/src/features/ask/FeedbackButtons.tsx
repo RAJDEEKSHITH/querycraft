@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { Button, IconButton } from '../../components/Button'
 import { CheckIcon, ThumbDownIcon, ThumbUpIcon } from '../../components/icons'
 import type { FeedbackRating } from '../../types/api'
 
@@ -9,9 +10,6 @@ interface FeedbackButtonsProps {
   disabled: boolean
   onSend: (rating: FeedbackRating, comment: string) => void
 }
-
-const iconButton =
-  'inline-flex size-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
 
 /** Thumbs up / down under a finished answer; a rating can carry an optional comment. */
 export function FeedbackButtons({ given, disabled, onSend }: FeedbackButtonsProps) {
@@ -42,26 +40,12 @@ export function FeedbackButtons({ given, disabled, onSend }: FeedbackButtonsProp
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-0.5">
-        <button
-          type="button"
-          aria-label="Rate the answer as helpful"
-          aria-pressed={rating === 'up'}
-          disabled={disabled}
-          onClick={() => setRating('up')}
-          className={`${iconButton} ${rating === 'up' ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100' : ''}`}
-        >
+        <IconButton aria-label="Rate the answer as helpful" pressed={rating === 'up'} disabled={disabled} onClick={() => setRating('up')}>
           <ThumbUpIcon />
-        </button>
-        <button
-          type="button"
-          aria-label="Rate the answer as not helpful"
-          aria-pressed={rating === 'down'}
-          disabled={disabled}
-          onClick={() => setRating('down')}
-          className={`${iconButton} ${rating === 'down' ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100' : ''}`}
-        >
+        </IconButton>
+        <IconButton aria-label="Rate the answer as not helpful" pressed={rating === 'down'} disabled={disabled} onClick={() => setRating('down')}>
           <ThumbDownIcon />
-        </button>
+        </IconButton>
       </div>
       {rating !== null && (
         <form onSubmit={submit} className="qc-fade-in flex flex-wrap items-center gap-2">
@@ -75,22 +59,14 @@ export function FeedbackButtons({ given, disabled, onSend }: FeedbackButtonsProp
             maxLength={COMMENT_MAX}
             placeholder={rating === 'up' ? 'What was good? (optional)' : 'What was wrong? (optional)'}
             onChange={(e) => setComment(e.target.value)}
-            className="min-w-48 flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+            className="h-8 min-w-48 flex-1 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
           />
-          <button
-            type="submit"
-            disabled={disabled}
-            className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-60 dark:bg-indigo-500 dark:hover:bg-indigo-400"
-          >
+          <Button type="submit" variant="primary" disabled={disabled}>
             Send feedback
-          </button>
-          <button
-            type="button"
-            onClick={() => setRating(null)}
-            className="rounded-lg px-2.5 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:text-zinc-400 dark:hover:bg-zinc-800"
-          >
+          </Button>
+          <Button variant="ghost" onClick={() => setRating(null)}>
             Cancel
-          </button>
+          </Button>
         </form>
       )}
     </div>

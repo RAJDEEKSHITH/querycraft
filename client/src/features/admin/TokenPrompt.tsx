@@ -35,7 +35,7 @@ export function TokenPrompt() {
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto max-w-md space-y-3 rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
+    <form onSubmit={submit} className="mx-auto max-w-md space-y-3 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
       <h2 className="text-base font-medium text-zinc-900 dark:text-zinc-100">Admin sign-in</h2>
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
         Enter the admin token. It is kept in this tab&apos;s memory only and is gone after a reload.
@@ -51,7 +51,7 @@ export function TokenPrompt() {
           autoComplete="off"
           value={token}
           onChange={(e) => setToken(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          className="mt-1 block w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
         />
       </div>
       {error !== null && <ErrorMessage message={error} />}

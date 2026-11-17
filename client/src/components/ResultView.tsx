@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { chooseChart } from '../lib/chart'
 import type { Column } from '../types/api'
 import { Button } from './Button'
-import { Chart } from './Chart'
+import { Chart } from './chart/Chart'
 import { ErrorBoundary } from './ErrorBoundary'
 import { ResultTable } from './ResultTable'
 
@@ -16,15 +16,15 @@ function ResultContent({ columns, rows, truncated }: ResultProps) {
   const spec = chooseChart(columns, rows)
   const [showChart, setShowChart] = useState(true)
   return (
-    <div className="space-y-3">
-      {spec !== null && (
-        <div className="space-y-2">
-          <Button variant="ghost" className="px-2 py-0.5 text-xs" aria-expanded={showChart} onClick={() => setShowChart(!showChart)}>
-            {showChart ? 'Hide chart' : 'Show chart'}
+    <div className="space-y-6">
+      {spec !== null &&
+        (showChart ? (
+          <Chart spec={spec} columns={columns} rows={rows} onHide={() => setShowChart(false)} />
+        ) : (
+          <Button variant="ghost" size="sm" className="-ml-2.5" onClick={() => setShowChart(true)}>
+            Show chart
           </Button>
-          {showChart && <Chart spec={spec} columns={columns} rows={rows} />}
-        </div>
-      )}
+        ))}
       <ResultTable columns={columns} rows={rows} truncated={truncated} />
     </div>
   )

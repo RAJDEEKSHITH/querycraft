@@ -5,14 +5,14 @@ Verified facts only. Read at the start of every session (see `CLAUDE.md` section
 ## Handoff
 
 - **Current milestone:** M8 — Finish: complete 2026-11-17. Post-M8 client chat-style redesign (approved spec change): **complete 2026-11-17** (browser check 12/12 OK, final report given). The Definition of Done is met except the demo video link (§25 item 1; README placeholder), which the user adds after recording.
-- **Current task:** none. No further work planned.
+- **Current task:** chart polish and de-clutter pass (approved spec change 2026-11-17, client only): tasks 1–6 done; polish fixes (tasks 7–8) done; waiting for the user's re-check.
 - **Frozen (user decision A, 2026-11-14, NOTES.md D72; answer prompt reopened by the user 2026-11-16 for D83 and D88 only):** prompts (`src/agent/prompts/`), table descriptions, glossary, examples and retrieval settings (table top-k 8) are frozen. No further tuning. q11/q14 are recorded in NOTES.md Known limitations (similarity-only retrieval misses bridge tables like `sales.customer`; next step would be foreign-key expansion, out of scope). **M8 reminders for the README:** (1) limitations: the bridge-table retrieval limitation; (2) limitations: "partial-year data can skew period comparisons" (moment 6 re-check, NOTES.md Known limitations); (3) MCP setup for **both** Claude Desktop and Claude Code (`claude mcp add`), from "M7 MCP client setup" below (user instruction 2026-11-17, §25 item 12).
-- **Last completed step:** user browser check of the redesign: 12 of 12 OK; redesign report given.
-- **Next step:** none. Optional for the user: commit the uncommitted changes; replace the README demo video placeholder with the link.
-- **Files changed but unfinished:** none. Uncommitted: the client redesign (37 tracked files changed or removed, 18 new files under `client/src/`) plus `IMPLEMENTATION.md` (§15, §6 row), `PROGRESS.md`, `README.md` (client row, test count); `NOTES.md` git-ignored. Committed by the user: `1a0bddd chore: before UI redesign` (README rewrite, §25, runner timeout fix); `main` is level with `origin/main`.
+- **Last completed step:** task 8 (plain pencil icon, bar width reverted to the slim bars) implemented and checked; re-check list given to the user.
+- **Next step:** record the user's re-check result under "Chart polish and de-clutter tasks"; fix anything reported. Optional for the user: commit; replace the README demo video placeholder.
+- **Files changed but unfinished:** none. Uncommitted: chart polish (client only: `src/components/chart/` new, `components/Chart.tsx` removed, `lib/units.ts`, `lib/ticks.ts`, `lib/use-element-width.ts` and three test files new, about 30 client files edited) plus `IMPLEMENTATION.md` §15, `PROGRESS.md`, `README.md` (test count); `NOTES.md` git-ignored. The chat-style redesign is committed (`ea00bdb`).
 - **Pending approvals / questions:** none.
 - **Open items to investigate:** none.
-- **Last command results (2026-11-17, after the client redesign):** client `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (11 files, 111 tests), `pnpm build` 0; Vite smoke check: `/` and the main modules 200. Server untouched since the end of M8 (typecheck 0, lint 0, build 0, test 0: 47 files, 860 tests).
+- **Last command results (2026-11-17, after the chart polish):** client `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (15 files, 160 tests), `pnpm build` 0 (after task 8). Server untouched (end of M8: typecheck 0, lint 0, build 0, test 0: 47 files, 860 tests).
 
 ### M4 real runs, day 2 (2026-11-16, approved by the user)
 
@@ -190,6 +190,19 @@ The user approved all of these on 2026-11-13, including the changes reported as 
 | M6 — Client | Complete (2026-11-16; report given) |
 | M7 — MCP server | Complete (2026-11-17; report given) |
 | M8 — Finish | Complete (2026-11-17; report given) |
+
+## Chart polish and de-clutter tasks (approved spec change and plan, 2026-11-17)
+
+Palette (validated with the dataviz validator, `--pairs all`, all checks pass): light `#4f46e5`, `#0f9488`, `#c2652a` on `#ffffff`; dark `#7479f5`, `#24a393`, `#d9703a` on `#09090b`.
+
+- [x] 1. `lib/units.ts` (humanize, unit inference, formatters) and `lib/ticks.ts` (nice ticks) with tests (`units.test.ts`, `ticks.test.ts`)
+- [x] 2. `lib/chart.ts`: year dimension in `chooseChart`, orientation, chart title, date labels, with tests (`chart-presentation.test.ts`; the old "numeric year → no chart" test now uses two plain measures)
+- [x] 3. Chart component (`components/chart/`: `Chart`, `VerticalPlot`, `HorizontalPlot`, `ChartTooltip`, `series`; `lib/use-element-width.ts`): responsive width, axes and titles, horizontal bars, legend, tooltip on hover and keyboard focus. Checked visually with headless Chrome screenshots of six sample charts at 375 and 760 px in both themes (scratch files only); tooltip moved beside the hovered point after that check
+- [x] 4. Precision everywhere: result table (units, humanized headers with the raw name and type on hover, midnight timestamps shown as dates), answer metadata, approval cost, step durations
+- [x] 5. De-clutter pass: type scale (`text-display` 28 px added), weights 400/500, radius scale, `qc-focus` / `qc-focus-inset` rings, `Button` (primary, secondary, ghost, destructive; sm, md) and `IconButton` replace the ad-hoc buttons; card labels that repeated the card text removed; step box, Details rule and re-run box borders removed; muted text raised to zinc-500 / dark zinc-400
+- [x] 6. Client typecheck 0, lint 0, test 0 (14 files, 156 tests), build 0; NOTES.md D97, Numbers, Known limitations; README test count; browser checklist given to the user
+- [x] 7. Polish fixes from the user's browser check (2026-11-17): "New conversation" one line, 40 px, label truncates and never wraps, shortcut only in the title ("New conversation (Ctrl+Shift+O)"); "Jump to latest" in its own row centred above the composer (never over the thread), only when scrolled up; vertical bars (or bar groups) take 60% of the band, at most 56 px per bar, 3 px corners (`components/chart/series.test.ts`). Client typecheck 0, lint 0, test 0 (15 files, 160 tests), build 0
+- [x] 8. Follow-ups (user, 2026-11-17): pencil icon without its base line (`EditIcon`, used in the sidebar button and the collapsed-sidebar header); bar width change of task 7 reverted on the user's preference (back to 72% of the band, at most 24 px per bar, 4 px corners; `series.test.ts` now covers the slim bars); the button and Jump to latest fixes kept. Client typecheck 0, lint 0, test 0 (15 files, 160 tests), build 0. Re-check by the user pending
 
 ## Client redesign tasks (approved spec change and plan, 2026-11-17; complete 2026-11-17)
 
@@ -521,6 +534,8 @@ Published figures given by the user on 2026-11-13. **Published, not verified fro
 | Gemini `gemini-embedding-001` | 100 | 1000 | 30000 | not given |
 
 ## Approved spec changes
+
+- **2026-11-17 — Chart presentation and year dimension (§15, after the redesign).** Approved by the user with the chart-polish plan: (1) new §15 bullet "Chart presentation" (humanized titles, conservative units, nice ticks, horizontal bars, legend, tooltip on hover and keyboard focus, responsive width, number precision everywhere); (2) percent rules: `percent`/`pct` are percentage points, `share`/`growth`/`rate` ×100 only when every value is between −1 and 1, `currency`/`exchange`/`averagerate`/`endofdayrate` get no unit; (3) the model's answer sentence is not rewritten; (4) extra: a numeric column named `year` or ending in `year` with whole values 1900–2100 is the chart dimension (line for 3+ years, bars for fewer), added to the §15 chart rules. Applied by the agent to `IMPLEMENTATION.md` §15. Client only; no server, prompt or dependency changes.
 
 - **2026-11-17 — Chat-style client redesign (§15, after M8).** Approved by the user with the plan and decisions 1–5 (see "Client redesign tasks"); applied by the agent to `IMPLEMENTATION.md` §15 (Layout, State, Thread, Composer and the final bullet replace Views, State, Ask view and History view) and the §6 folder row (`history/` → `sidebar/`). Client only; existing §14 endpoints; no new dependencies.
 - **2026-11-17 — §25 README structure (after M8).** Approved by the user; applied by the agent to `IMPLEMENTATION.md` §25. The README was rewritten for two audiences (skimmers and engineers): title, tagline and demo video placeholder; What it does; How it works; Key results; Architecture; Request flow; Safety; Evaluation; Engineering highlights; Tech stack; Quick start; MCP; Limitations and next steps; Internals (simplified agent graph, at most about 12 nodes with the clarify and approval pauses and the retry loop; app data model ER diagram, main tables and links only); Setup details with the scripts and project structure tables. The separate Features list is dropped (covered by "How it works"); the demo video link moves from item 15 to item 1.

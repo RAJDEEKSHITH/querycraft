@@ -7,7 +7,9 @@ describe('formatResultCell', () => {
   it('decimal types: thousands separators and exactly 2 decimals', () => {
     expect(formatResultCell('2217564.7600', col('revenue', 'numeric'))).toBe('2,217,564.76')
     expect(formatResultCell('1234.5', col('revenue', 'numeric'))).toBe('1,234.50')
-    expect(formatResultCell(0.005, col('rate', 'double precision'))).toBe('0.01')
+    expect(formatResultCell('0.005', col('weight', 'double precision'))).toBe('0.01')
+    // A "rate" of fractions is a percentage since 2026-11-17 (approved unit rules): 0.5 (%).
+    expect(formatResultCell(0.005, col('rate', 'double precision'))).toBe('0.5')
     expect(formatResultCell('-12', col('delta', 'numeric(12,2)'))).toBe('-12.00')
   })
 

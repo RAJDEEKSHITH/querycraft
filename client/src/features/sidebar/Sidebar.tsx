@@ -21,7 +21,7 @@ interface SidebarProps {
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent)
 
 const iconButton =
-  'ml-auto inline-flex size-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-200/70 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
+  'ml-auto inline-flex size-8 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-200/70 hover:text-zinc-900 qc-focus dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
 
 export function Sidebar({ activeId, adminActive, onCollapse, onClose }: SidebarProps) {
   const entries = useHistoryStore((s) => s.entries)
@@ -31,7 +31,7 @@ export function Sidebar({ activeId, adminActive, onCollapse, onClose }: SidebarP
     <aside aria-label="Sidebar" className="flex h-full flex-col border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
       <div className="flex h-12 shrink-0 items-center gap-2 px-3">
         <LogoMark />
-        <span className="font-semibold tracking-tight">QueryCraft</span>
+        <span className="font-medium tracking-tight">QueryCraft</span>
         {onCollapse !== undefined && (
           <button type="button" aria-label="Hide the sidebar" onClick={onCollapse} className={iconButton}>
             <PanelIcon />
@@ -49,11 +49,11 @@ export function Sidebar({ activeId, adminActive, onCollapse, onClose }: SidebarP
           type="button"
           onClick={startNewConversation}
           aria-keyshortcuts="Control+Shift+O Meta+Shift+O"
-          className="flex w-full items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+          title={`New conversation (${isMac ? '⌘⇧O' : 'Ctrl+Shift+O'})`}
+          className="qc-focus flex h-10 w-full min-w-0 items-center gap-2 rounded-md bg-indigo-600 px-3 text-sm font-medium whitespace-nowrap text-white hover:bg-indigo-500"
         >
-          <EditIcon />
-          New conversation
-          <kbd className="ml-auto font-sans text-[11px] text-indigo-100">{isMac ? '⌘⇧O' : 'Ctrl+Shift+O'}</kbd>
+          <EditIcon className="size-4 shrink-0" />
+          <span className="min-w-0 truncate">New conversation</span>
         </button>
       </div>
 
@@ -80,7 +80,7 @@ export function Sidebar({ activeId, adminActive, onCollapse, onClose }: SidebarP
         <a
           href={ADMIN_HASH}
           aria-current={adminActive ? 'page' : undefined}
-          className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-500 ${
+          className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-sm qc-focus-inset ${
             adminActive
               ? 'bg-zinc-200/80 font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50'
               : 'text-zinc-700 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-800/60'

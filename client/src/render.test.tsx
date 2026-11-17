@@ -124,7 +124,7 @@ describe('thread turn states render', () => {
 
   it('clarification inline with options and free text; an answered one stays in the thread', () => {
     const out = html({ ...finished, status: 'awaiting_clarification', clarification: { question: 'Which year?', options: ['2024', '2025'] } })
-    expect(out).toContain('Needs a clarification')
+    expect(out).toContain('aria-label="Clarification needed"')
     expect(out).toContain('Which year?')
     expect(out).toContain('2025')
     expect(out).toContain('Or answer in your own words')
@@ -134,7 +134,7 @@ describe('thread turn states render', () => {
 
   it('approval inline with cost vs soft limit and the SQL', () => {
     const out = html({ ...finished, status: 'awaiting_approval', approval: { estimatedCost: 67939, softLimit: 50000, sql: 'SELECT 1' } })
-    expect(out).toContain('Needs your approval')
+    expect(out).toContain('aria-label="Approval needed"')
     expect(out).toContain('67,939')
     expect(out).toContain('50,000')
     expect(out).toContain('Approve')
@@ -144,8 +144,9 @@ describe('thread turn states render', () => {
 
   it('answer first, then chart and table, details with SQL, tables and assumptions, and feedback', () => {
     const out = html({ ...finished, status: 'answered', outcome: { kind: 'answer', data: answer } })
-    expect(out.indexOf('Mountain-200 Black, 38 had the highest revenue.')).toBeLessThan(out.indexOf('<svg viewBox="0 0 640'))
-    expect(out.indexOf('<svg viewBox="0 0 640')).toBeLessThan(out.indexOf('<table'))
+    expect(out.indexOf('Mountain-200 Black, 38 had the highest revenue.')).toBeLessThan(out.indexOf('aria-roledescription="chart"'))
+    expect(out.indexOf('aria-roledescription="chart"')).toBeGreaterThan(-1)
+    expect(out.indexOf('aria-roledescription="chart"')).toBeLessThan(out.indexOf('<table'))
     expect(out.indexOf('<table')).toBeLessThan(out.indexOf('Details'))
     expect(out).toContain('Assumptions')
     expect(out).toContain('production.product')
@@ -224,7 +225,7 @@ describe('thread turn states render', () => {
 describe('result view renders', () => {
   it('no chart when chooseChart says no; the table still shows', () => {
     const out = renderToStaticMarkup(
-      <ResultView columns={[{ name: 'year', type: 'numeric' }, { name: 'revenue', type: 'numeric' }]} rows={[['2024', '1']]} truncated />,
+      <ResultView columns={[{ name: 'total', type: 'numeric' }, { name: 'revenue', type: 'numeric' }]} rows={[['2024', '1']]} truncated />,
     )
     expect(out).not.toContain('<svg')
     expect(out).toContain('cut at the row limit')
@@ -238,6 +239,42 @@ describe('result view renders', () => {
         truncated={false}
       />,
     )
-    expect(out).toContain('<polyline')
+    expect(out).toContain('aria-label="Line chart: Revenue by month.')
+    expect(out).toContain('Jan 2024')
+    expect(out).toContain('Feb 2024')
+    expect(out).not.toContain('00:00:00')
+  })
+
+  it('a numeric year column: bars for 2 years with titles and units', () => {
+    const out = renderToStaticMarkup(
+      <ResultView
+        columns={[{ name: 'order_year', type: 'numeric' }, { name: 'revenue', type: 'numeric' }]}
+        rows={[['2023', '43671889.5037'], ['2024', '20008518.36']]}
+        truncated={false}
+      />,
+    )
+    expect(out).toContain('aria-label="Bar chart: Revenue by order year.')
+    expect(out).toContain('Revenue (USD)')
+    expect(out).toContain('Order year')
+    expect(out).toContain('$50M')
+    // Table: whole years unchanged, money with 2 decimals and no floating-point noise.
+    expect(out).toContain('>2023<')
+    expect(out).toContain('43,671,889.50')
+    expect(out).not.toContain('43671889.5037')
+  })
+
+  it('many categories → horizontal bars; legend for two series', () => {
+    const rows = Array.from({ length: 10 }, (_, i) => [`Territory number ${i}`, String(1000 + i), String(2000 + i)])
+    const out = renderToStaticMarkup(
+      <ResultView
+        columns={[{ name: 'territory', type: 'text' }, { name: 'revenue_2023', type: 'numeric' }, { name: 'revenue_2024', type: 'numeric' }]}
+        rows={rows}
+        truncated={false}
+      />,
+    )
+    expect(out).toContain('aria-label="Horizontal bar chart: Revenue by territory, 2023 vs 2024.')
+    expect(out).toContain('aria-label="Series"')
+    expect(out).toContain('>2023</li>')
+    expect(out).toContain('Revenue 2024 (USD)')
   })
 })

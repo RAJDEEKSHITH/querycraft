@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { IconButton } from './components/Button'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { MenuIcon, EditIcon, PanelIcon } from './components/icons'
 import { AdminView } from './features/admin/AdminView'
@@ -12,9 +13,6 @@ import { useBackfillTitles } from './features/sidebar/use-backfill-titles'
 
 // Chat-style layout (IMPLEMENTATION.md 15): sidebar (a drawer on narrow screens) and the
 // main area with the current conversation or the Admin view.
-
-const iconButton =
-  'inline-flex size-9 items-center justify-center rounded-lg text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
 
 function App() {
   useApplyTheme()
@@ -87,25 +85,18 @@ function App() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className={`flex h-12 shrink-0 items-center gap-1 px-2 ${sidebarOpen ? 'md:hidden' : ''}`}>
-          <button
-            ref={menuButton}
-            type="button"
-            aria-label="Open the sidebar"
-            aria-expanded={drawerOpen}
-            onClick={() => setDrawerOpen(true)}
-            className={`${iconButton} md:hidden`}
-          >
-            <MenuIcon className="size-5" />
-          </button>
+          <IconButton ref={menuButton} aria-label="Open the sidebar" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)} className="md:hidden">
+            <MenuIcon className="size-4" />
+          </IconButton>
           {!sidebarOpen && (
-            <button type="button" aria-label="Show the sidebar" onClick={() => setSidebarOpen(true)} className={`${iconButton} hidden md:inline-flex`}>
-              <PanelIcon className="size-5" />
-            </button>
+            <IconButton aria-label="Show the sidebar" onClick={() => setSidebarOpen(true)} className="hidden md:inline-flex">
+              <PanelIcon className="size-4" />
+            </IconButton>
           )}
-          <span className="px-1 text-sm font-semibold">QueryCraft</span>
-          <button type="button" aria-label="New conversation" onClick={startNewConversation} className={`${iconButton} ml-auto`}>
-            <EditIcon className="size-[18px]" />
-          </button>
+          <span className="px-1 text-sm font-medium">QueryCraft</span>
+          <IconButton aria-label="New conversation" onClick={startNewConversation} className="ml-auto">
+            <EditIcon className="size-4" />
+          </IconButton>
         </header>
 
         <main className="flex min-h-0 flex-1 flex-col">
@@ -116,7 +107,7 @@ function App() {
             ) : (
               <div className="min-h-0 flex-1 overflow-y-auto">
                 <div className="mx-auto max-w-5xl px-4 py-6">
-                  <h1 className="mb-4 text-lg font-semibold">Admin</h1>
+                  <h1 className="mb-6 text-xl font-medium">Admin</h1>
                   <AdminView />
                 </div>
               </div>

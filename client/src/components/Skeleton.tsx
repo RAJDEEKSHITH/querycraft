@@ -1,7 +1,7 @@
 // Loading skeletons where content is expected (IMPLEMENTATION.md 15).
 
 export function SkeletonLine({ className = 'w-full' }: { className?: string }) {
-  return <span aria-hidden="true" className={`block h-3 rounded bg-zinc-200/80 motion-safe:animate-pulse dark:bg-zinc-800 ${className}`} />
+  return <span aria-hidden="true" className={`block h-3 rounded-md bg-zinc-200/80 motion-safe:animate-pulse dark:bg-zinc-800 ${className}`} />
 }
 
 /** An answer still being written: a few text lines. */
@@ -22,7 +22,7 @@ export function ThreadSkeleton() {
       {[0, 1].map((i) => (
         <div key={i} className="space-y-4">
           <div className="flex justify-end">
-            <SkeletonLine className="h-9 w-1/2 rounded-2xl" />
+            <SkeletonLine className="h-9 w-1/2 rounded-xl" />
           </div>
           <div className="space-y-2.5">
             <SkeletonLine className="w-1/3" />

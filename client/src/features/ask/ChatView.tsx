@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Button } from '../../components/Button'
 import { AlertIcon, ArrowDownIcon } from '../../components/icons'
 import { ThreadSkeleton } from '../../components/Skeleton'
 import { ErrorMessage } from '../../components/States'
@@ -14,9 +15,6 @@ import { ThreadTurn } from './ThreadTurn'
 // One conversation as a chat thread (IMPLEMENTATION.md 15). The route decides which
 // conversation is shown; a new conversation's id is put into the route after its first question.
 
-const outlineButton =
-  'rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-800'
-
 function LoadFailed() {
   const loadError = useAskStore((s) => s.loadError)
   const openRoute = useAskStore((s) => s.openRoute)
@@ -25,30 +23,24 @@ function LoadFailed() {
   return (
     <div role="alert" className="flex flex-1 flex-col items-center justify-center gap-3 py-16 text-center">
       <AlertIcon className="size-6 text-zinc-400" />
-      <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+      <h1 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
         {loadError.notFound ? 'This conversation is no longer on the server' : 'The conversation could not be opened'}
       </h1>
       <p className="max-w-md text-sm text-zinc-500 dark:text-zinc-400">{loadError.message}</p>
       <div className="mt-2 flex gap-2">
         {loadError.notFound ? (
-          <button
-            type="button"
-            className={outlineButton}
+          <Button
             onClick={() => {
               remove(loadError.conversationId)
               startNewConversation()
             }}
           >
             Remove from history
-          </button>
+          </Button>
         ) : (
-          <button type="button" className={outlineButton} onClick={() => void openRoute(loadError.conversationId)}>
-            Try again
-          </button>
+          <Button onClick={() => void openRoute(loadError.conversationId)}>Try again</Button>
         )}
-        <button type="button" className={outlineButton} onClick={startNewConversation}>
-          New conversation
-        </button>
+        <Button onClick={startNewConversation}>New conversation</Button>
       </div>
     </div>
   )
@@ -135,17 +127,20 @@ export function ChatView({ conversationId }: { conversationId: string | null }) 
             )}
           </div>
         </div>
-        {!atBottom && turns.length > 0 && (
+      </div>
+      {/* Its own row between the thread and the composer: it never covers the thread. */}
+      {!atBottom && turns.length > 0 && (
+        <div className="flex shrink-0 justify-center px-4 pt-2">
           <button
             type="button"
             onClick={jumpToLatest}
-            className="qc-fade-in absolute bottom-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-sm hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            className="qc-fade-in qc-focus inline-flex h-7 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
           >
             <ArrowDownIcon className="size-3.5" />
             Jump to latest
           </button>
-        )}
-      </div>
+        </div>
+      )}
       <Composer />
     </div>
   )

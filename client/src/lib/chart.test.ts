@@ -25,17 +25,17 @@ describe('columnKind', () => {
 
 describe('chooseChart', () => {
   it('text dimension + one numeric column → bar', () => {
-    expect(chooseChart([text('territory'), num('revenue')], [['Northwest', '123.45']])).toEqual({ kind: 'bar', dimension: 0, measures: [1] })
+    expect(chooseChart([text('territory'), num('revenue')], [['Northwest', '123.45']])).toEqual({ kind: 'bar', dimension: 0, dimensionKind: 'text', measures: [1] })
   })
 
   it('date dimension → line, whatever the column order', () => {
-    expect(chooseChart([num('revenue'), date('month')], [['1', '2024-01-01']])).toEqual({ kind: 'line', dimension: 1, measures: [0] })
+    expect(chooseChart([num('revenue'), date('month')], [['1', '2024-01-01']])).toEqual({ kind: 'line', dimension: 1, dimensionKind: 'date', measures: [0] })
     expect(chooseChart([ts('month'), num('revenue')], [['2024-01-01 00:00:00', 5]])?.kind).toBe('line')
   })
 
   it('allows up to 3 numeric columns', () => {
     const cols = [varchar('territory'), num('a'), big('b'), num('c')]
-    expect(chooseChart(cols, [['x', 1, '2', 3]])).toEqual({ kind: 'bar', dimension: 0, measures: [1, 2, 3] })
+    expect(chooseChart(cols, [['x', 1, '2', 3]])).toEqual({ kind: 'bar', dimension: 0, dimensionKind: 'text', measures: [1, 2, 3] })
   })
 
   it('no chart with 4 numeric columns', () => {
@@ -51,8 +51,10 @@ describe('chooseChart', () => {
     expect(chooseChart([text('a'), text('b'), num('n')], [['x', 'y', 1]])).toBeNull()
   })
 
-  it('no chart without a dimension (numeric year from extract)', () => {
-    expect(chooseChart([num('year'), num('revenue')], [['2024', '1']])).toBeNull()
+  // Until 2026-11-17 a numeric year column gave no chart; it is now the dimension
+  // (approved spec change, tests in chart-presentation.test.ts).
+  it('no chart without a dimension (two measures, no year column)', () => {
+    expect(chooseChart([num('total'), num('revenue')], [['2024', '1']])).toBeNull()
   })
 
   it('no chart when another column type is present', () => {
@@ -84,12 +86,12 @@ describe('toNumber and chartPoints', () => {
   })
 
   it('sorts line points by date and keeps bar order', () => {
-    const line = chartPoints({ kind: 'line', dimension: 0, measures: [1] }, [
+    const line = chartPoints({ kind: 'line', dimension: 0, dimensionKind: 'date', measures: [1] }, [
       ['2024-03-01', '3'],
       ['2024-01-01', '1'],
     ])
     expect(line.map((p) => p.label)).toEqual(['2024-01-01', '2024-03-01'])
-    const bar = chartPoints({ kind: 'bar', dimension: 0, measures: [1] }, [
+    const bar = chartPoints({ kind: 'bar', dimension: 0, dimensionKind: 'text', measures: [1] }, [
       ['b', 2],
       ['a', null],
     ])

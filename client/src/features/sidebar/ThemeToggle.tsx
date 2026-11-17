@@ -16,7 +16,7 @@ export function ThemeToggle() {
       <span id="theme-label" className="text-xs text-zinc-500 dark:text-zinc-400">
         Theme
       </span>
-      <div role="group" aria-labelledby="theme-label" className="flex rounded-lg border border-zinc-200 p-0.5 dark:border-zinc-700">
+      <div role="group" aria-labelledby="theme-label" className="flex rounded-md border border-zinc-200 p-0.5 dark:border-zinc-700">
         {OPTIONS.map(({ id, label, Icon }) => (
           <button
             key={id}
@@ -25,7 +25,7 @@ export function ThemeToggle() {
             aria-pressed={choice === id}
             title={label}
             onClick={() => setChoice(id)}
-            className={`inline-flex size-7 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-indigo-500 ${
+            className={`inline-flex size-7 items-center justify-center rounded-md qc-focus ${
               choice === id
                 ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-50'
                 : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'
