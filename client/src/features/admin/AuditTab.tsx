@@ -89,7 +89,7 @@ export function AuditTab({ token }: { token: string }) {
               type="button"
               aria-pressed={filter === f.value}
               onClick={() => choose(f.value)}
-              className={`rounded px-3 py-1 text-sm focus-visible:outline-2 focus-visible:outline-sky-500 ${
+              className={`rounded px-3 py-1 text-sm focus-visible:outline-2 focus-visible:outline-indigo-500 ${
                 filter === f.value
                   ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
                   : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'

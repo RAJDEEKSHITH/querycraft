@@ -1,54 +1,129 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { MenuIcon, EditIcon, PanelIcon } from './components/icons'
 import { AdminView } from './features/admin/AdminView'
-import { AskView } from './features/ask/AskView'
-import { HistoryView } from './features/history/HistoryView'
-import { useHashView, VIEW_HASH, type View } from './lib/hash-route'
+import { ChatView } from './features/ask/ChatView'
+import { MobileDrawer } from './features/sidebar/MobileDrawer'
+import { Sidebar } from './features/sidebar/Sidebar'
+import { isLegacyHistoryHash, NEW_CONVERSATION_HASH, routeFromHash, useHash } from './lib/hash-route'
+import { startNewConversation } from './lib/navigation'
+import { useApplyTheme } from './lib/use-theme'
+import { useBackfillTitles } from './features/sidebar/use-backfill-titles'
 
-const NAV: { view: View; label: string }[] = [
-  { view: 'ask', label: 'Ask' },
-  { view: 'history', label: 'History' },
-  { view: 'admin', label: 'Admin' },
-]
+// Chat-style layout (IMPLEMENTATION.md 15): sidebar (a drawer on narrow screens) and the
+// main area with the current conversation or the Admin view.
+
+const iconButton =
+  'inline-flex size-9 items-center justify-center rounded-lg text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-indigo-500 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
 
 function App() {
-  const view = useHashView()
+  useApplyTheme()
+  useBackfillTitles()
+  const hash = useHash()
+  const route = routeFromHash(hash)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const menuButton = useRef<HTMLButtonElement>(null)
+
+  // On every hash change (adjusting state during render, not in an effect): the old History
+  // view's hash opens the sidebar (it lives there now, approved 2026-11-17); any other
+  // navigation (a conversation picked, Admin, new conversation) closes the drawer, except
+  // the redirect away from that old hash.
+  const [lastHash, setLastHash] = useState<string | null>(null)
+  if (hash !== lastHash) {
+    setLastHash(hash)
+    if (isLegacyHistoryHash(hash)) {
+      setSidebarOpen(true)
+      setDrawerOpen(window.matchMedia('(max-width: 767px)').matches)
+    } else if (lastHash === null || !isLegacyHistoryHash(lastHash)) {
+      setDrawerOpen(false)
+    }
+  }
+
+  // The old History hash is replaced by #/ (no extra history entry).
+  useEffect(() => {
+    if (isLegacyHistoryHash(hash)) window.location.replace(NEW_CONVERSATION_HASH)
+  }, [hash])
+
+  // Ctrl/Cmd+Shift+O: new conversation (the button is the fallback where the browser keeps it).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && e.key.toLowerCase() === 'o') {
+        e.preventDefault()
+        startNewConversation()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [])
+
+  const closeDrawer = useCallback(() => {
+    setDrawerOpen(false)
+    menuButton.current?.focus()
+  }, [])
+
+  const activeId = route.view === 'chat' ? route.conversationId : null
+
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-      <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <div>
-            <h1 className="text-lg font-semibold">QueryCraft</h1>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Ask your Postgres database questions in plain English. Safe by design, measured for accuracy.</p>
-          </div>
-          <nav aria-label="Views">
-            <ul className="flex gap-1">
-              {NAV.map((item) => (
-                <li key={item.view}>
-                  <a
-                    href={VIEW_HASH[item.view]}
-                    aria-current={view === item.view ? 'page' : undefined}
-                    className={`rounded-md px-3 py-1.5 text-sm font-medium focus-visible:outline-2 focus-visible:outline-sky-500 ${
-                      view === item.view
-                        ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
-                        : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
-                    }`}
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
+    <div className="flex h-dvh overflow-hidden bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+      <a
+        href="#composer"
+        className="sr-only z-50 rounded-md bg-indigo-600 px-3 py-2 text-sm text-white focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+      >
+        Skip to the question box
+      </a>
+
+      {sidebarOpen && (
+        <div className="hidden w-[260px] shrink-0 md:block">
+          <Sidebar activeId={activeId} adminActive={route.view === 'admin'} onCollapse={() => setSidebarOpen(false)} />
         </div>
-      </header>
-      <main className="mx-auto max-w-5xl px-4 py-6">
-        {/* Keyed by view: switching views clears a previous render error. */}
-        <ErrorBoundary key={view} label="this view">
-          {view === 'ask' && <AskView />}
-          {view === 'history' && <HistoryView />}
-          {view === 'admin' && <AdminView />}
-        </ErrorBoundary>
-      </main>
+      )}
+
+      <MobileDrawer open={drawerOpen} onClose={closeDrawer}>
+        <Sidebar activeId={activeId} adminActive={route.view === 'admin'} onClose={closeDrawer} />
+      </MobileDrawer>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className={`flex h-12 shrink-0 items-center gap-1 px-2 ${sidebarOpen ? 'md:hidden' : ''}`}>
+          <button
+            ref={menuButton}
+            type="button"
+            aria-label="Open the sidebar"
+            aria-expanded={drawerOpen}
+            onClick={() => setDrawerOpen(true)}
+            className={`${iconButton} md:hidden`}
+          >
+            <MenuIcon className="size-5" />
+          </button>
+          {!sidebarOpen && (
+            <button type="button" aria-label="Show the sidebar" onClick={() => setSidebarOpen(true)} className={`${iconButton} hidden md:inline-flex`}>
+              <PanelIcon className="size-5" />
+            </button>
+          )}
+          <span className="px-1 text-sm font-semibold">QueryCraft</span>
+          <button type="button" aria-label="New conversation" onClick={startNewConversation} className={`${iconButton} ml-auto`}>
+            <EditIcon className="size-[18px]" />
+          </button>
+        </header>
+
+        <main className="flex min-h-0 flex-1 flex-col">
+          {/* Keyed by view: switching views clears a previous render error. */}
+          <ErrorBoundary key={route.view} label="this view">
+            {route.view === 'chat' ? (
+              <ChatView conversationId={route.conversationId} />
+            ) : (
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <div className="mx-auto max-w-5xl px-4 py-6">
+                  <h1 className="mb-4 text-lg font-semibold">Admin</h1>
+                  <AdminView />
+                </div>
+              </div>
+            )}
+          </ErrorBoundary>
+        </main>
+      </div>
     </div>
   )
 }

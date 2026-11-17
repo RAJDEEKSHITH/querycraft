@@ -12,6 +12,8 @@ interface ResultTableProps {
   truncated: boolean
 }
 
+/** Paged result table: sticky header, row hover, numbers right-aligned in monospace,
+ *  horizontal scroll for wide results. */
 export function ResultTable({ columns, rows, truncated }: ResultTableProps) {
   const [page, setPage] = useState(0)
   const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
@@ -26,29 +28,38 @@ export function ResultTable({ columns, rows, truncated }: ResultTableProps) {
   return (
     <div className="space-y-2">
       {truncated && (
-        <p className="rounded-md bg-amber-50 px-3 py-1.5 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+        <p className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
           Showing the first {rows.length} rows: the result was cut at the row limit.
         </p>
       )}
-      <div className="overflow-x-auto rounded-md border border-zinc-200 dark:border-zinc-800">
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-zinc-50 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
+      <div className="max-h-[28rem] overflow-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+        <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
+          <thead className="sticky top-0 z-10 bg-zinc-50 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
             <tr>
               {columns.map((c, i) => (
-                <th key={i} scope="col" className={`px-3 py-2 font-medium ${numeric[i] === true ? 'text-right' : ''}`}>
+                <th
+                  key={i}
+                  scope="col"
+                  className={`border-b border-zinc-200 px-3 py-2 font-medium whitespace-nowrap dark:border-zinc-800 ${numeric[i] === true ? 'text-right' : ''}`}
+                >
                   {c.name}
-                  <span className="ml-1 font-normal text-zinc-400 dark:text-zinc-500">{c.type}</span>
+                  <span className="ml-1 font-mono font-normal text-zinc-400 dark:text-zinc-500">{c.type}</span>
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+          <tbody>
             {visible.map((row, r) => (
-              <tr key={current * PAGE_SIZE + r} className="text-zinc-800 dark:text-zinc-200">
+              <tr key={current * PAGE_SIZE + r} className="text-zinc-800 hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-900/70">
                 {columns.map((column, i) => {
                   const cell = row[i]
                   return (
-                    <td key={i} className={`px-3 py-1.5 whitespace-nowrap ${numeric[i] === true ? 'text-right tabular-nums' : ''}`}>
+                    <td
+                      key={i}
+                      className={`border-b border-zinc-100 px-3 py-1.5 whitespace-nowrap dark:border-zinc-800/70 ${
+                        numeric[i] === true ? 'text-right font-mono text-[13px] tabular-nums' : ''
+                      }`}
+                    >
                       {cell === null || cell === undefined ? (
                         <span className="text-zinc-400 italic dark:text-zinc-500">NULL</span>
                       ) : (

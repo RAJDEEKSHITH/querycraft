@@ -1,5 +1,7 @@
 // Labels for the agent's graph nodes and their step details (IMPLEMENTATION.md 12.1, 14.3).
 
+import { formatMs } from './format'
+
 const NODE_LABELS: Record<string, string> = {
   input_guard: 'Check the question',
   retrieve_context: 'Find tables, examples and definitions',
@@ -63,4 +65,47 @@ export function isRetry(node: string, detail: Record<string, unknown> | null | u
   if (node !== 'generate' || detail === null || detail === undefined) return false
   const attempt = num(detail['attempt'])
   return attempt !== null && attempt > 1
+}
+
+// Present-tense labels for the step in progress (the live timeline).
+const ACTIVE_LABELS: Record<string, string> = {
+  input_guard: 'Checking the question…',
+  retrieve_context: 'Finding tables…',
+  generate: 'Writing SQL…',
+  clarify: 'Asking for clarification…',
+  validate_sql: 'Checking safety…',
+  cost_check: 'Estimating the cost…',
+  approval: 'Waiting for approval…',
+  execute: 'Running the query…',
+  mask_output: 'Masking personal data…',
+  answer: 'Writing the answer…',
+}
+
+export function activeLabel(node: string): string {
+  return ACTIVE_LABELS[node] ?? `${nodeLabel(node)}…`
+}
+
+export interface SummaryStep {
+  node: string
+  status: 'started' | 'completed'
+  detail: Record<string, unknown> | null
+}
+
+/**
+ * One-line summary of a finished timeline, e.g. "8 steps · 1 attempt · 3.2 s". Attempts
+ * count the SQL the model wrote (left out when it wrote none); the time is shown only
+ * when the server reported it.
+ */
+export function timelineSummary(steps: readonly SummaryStep[], latencyMs: number | null): string {
+  const done = steps.filter((s) => s.status === 'completed')
+  let attempts = 0
+  for (const s of done) {
+    if (s.node !== 'generate' || s.detail?.['action'] !== 'sql') continue
+    const n = num(s.detail['attempt'])
+    attempts = Math.max(attempts + (n === null ? 1 : 0), n ?? 0)
+  }
+  const parts = [`${done.length} ${done.length === 1 ? 'step' : 'steps'}`]
+  if (attempts > 0) parts.push(`${attempts} ${attempts === 1 ? 'attempt' : 'attempts'}`)
+  if (latencyMs !== null) parts.push(formatMs(latencyMs))
+  return parts.join(' · ')
 }

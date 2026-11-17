@@ -34,7 +34,7 @@ Measured on 2026-11-14 and 2026-11-16 (`server/evals/REPORT.md`), with test coun
 | SQL safety test cases | 213 malicious, 71 safe |
 | Prompt tokens per question, with retrieval | 2,274 on average (all LLM calls of a question) |
 | Full-schema SQL prompt, for comparison | about 7,263 tokens (character-count estimate; not run) |
-| Automated tests | 936 (860 server, 76 client) |
+| Automated tests | 971 (860 server, 111 client) |
 
 Everything runs on free tiers: Groq for chat, Google Gemini for embeddings.
 
@@ -314,7 +314,7 @@ docker run -p 8080:80 querycraft-client
 | Path | Contents |
 |---|---|
 | `docker-compose.yml` · `infra/postgres/` | PostgreSQL 17 + pgvector with AdventureWorks; roles, data load and read-only grants |
-| `client/src/features/` | `ask`, `history` and `admin` views |
+| `client/src/features/` | `ask` (chat thread and composer), `sidebar` (conversations, theme) and `admin` views |
 | `client/src/components/` · `lib/` · `stores/` | Shared UI, HTTP and SSE clients, Zustand stores |
 | `server/src/http/` | Routes, controllers, middleware |
 | `server/src/services/` | Business logic shared by the HTTP API and MCP |

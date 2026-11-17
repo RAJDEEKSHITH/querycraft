@@ -176,7 +176,7 @@ Use the Zod version compatible with the installed LangChain packages; confirm at
 | `docker-compose.yml` | PostgreSQL service |
 | `infra/postgres/Dockerfile` | pgvector image with AdventureWorks data prepared at build time |
 | `infra/postgres/init/` | First-start scripts: roles, databases, extension, data load, reader grants |
-| `client/src/features/ask/` · `history/` · `admin/` | Feature folders |
+| `client/src/features/ask/` · `sidebar/` · `admin/` | Feature folders |
 | `client/src/components/` | Shared UI components |
 | `client/src/lib/` | axios instance, API functions, SSE client, utilities |
 | `client/src/stores/` | Zustand stores |
@@ -529,14 +529,14 @@ A client connecting after the run finished receives the final event(s) from the 
 
 ## 15. Client requirements
 
-- **Views:** Ask (default), History, Admin, switched by URL hash (`#/`, `#/history`, `#/admin`).
+- **Layout:** chat-style (approved spec change, 2026-11-17). A collapsible left sidebar (about 260 px; a slide-over drawer on narrow screens) holds the app name, a primary "New conversation" button (Ctrl/Cmd+Shift+O), this browser's conversations grouped by Today / Yesterday / Previous 7 days / Older (title = first question, truncated; active one highlighted; a per-row "Remove from history" that is client-side only), and at the bottom an Admin link and a light/dark/system theme toggle. Routes by URL hash: `#/` (new conversation), `#/c/<conversationId>`, `#/admin`; `#/history` redirects to `#/`.
 - **HTTP:** one axios instance in `lib/http.ts` (base URL from `VITE_API_BASE_URL`, error normalisation to the API error shape). SSE uses native `EventSource`.
-- **State (Zustand):** `askStore` (current conversation, question status, streamed steps, pending clarification/approval, result); `historyStore` (conversation ids persisted to `localStorage`); `adminStore` (admin token in memory only, never persisted). Server data that is simply fetched and shown stays in component state or small hooks.
-- **Ask view:** input with character counter; a short list of suggested demo questions (static prompts shown as suggestions); live step timeline; clarification card (options + free text); approval card (estimated cost vs soft limit, SQL preview, Approve/Deny); answer panel (answer, assumptions, tables used); SQL block with copy; result table (25 rows per page, truncation notice); chart; blocked card (stage, rule, reason); cannot-answer message; feedback buttons; follow-up input in the same conversation.
+- **State (Zustand):** `askStore` (current conversation and its turns: status, streamed steps, pending clarification/approval, outcome; opens a stored conversation from `GET /api/conversations/:id`); `historyStore` (conversation id, title and last activity, persisted to `localStorage`); `themeStore` (theme choice, persisted to `localStorage`); `adminStore` (admin token in memory only, never persisted). Server data that is simply fetched and shown stays in component state or small hooks.
+- **Thread:** one conversation as a chat thread (max width about 760 px). Empty state: heading, one line on what QueryCraft does, the demo questions (section 23) as suggestion cards. User messages are compact. An assistant message shows the answer first, then the chart and the result table (25 rows per page, truncation notice, sticky header, numbers right-aligned), then a collapsible Details area (SQL with copy, tables used, assumptions, tokens, time). The step timeline is live while running and collapses to one summary line afterwards (expandable). Clarification (options + free text), approval (estimated cost vs soft limit, SQL preview, Approve/Deny), blocked (stage, rule, reason) and cannot-answer appear inline as the assistant's turn. Feedback buttons sit under each finished answer; stored answers re-run their SQL to show rows. Auto-scroll follows the stream unless the user scrolls up, then a "Jump to latest" button appears.
+- **Composer:** fixed at the bottom; auto-growing textarea with send button; Enter sends, Shift+Enter adds a line; character counter near the limit; disabled while a question runs or waits for the user; "Stop waiting" stops following a running question on the client only (the server run continues and its result can be shown later); hint "Read-only. Every query is checked and audited."
 - **Chart rules (`chooseChart`):** one dimension column (text or date) + 1–3 numeric columns + ≤ 50 rows → date: line, text: bar; otherwise no chart. Hand-built SVG.
-- **History view:** questions of stored conversations with status; open one to see details and re-run results.
 - **Admin view:** token prompt; two tabs only: **Examples** (list by status; review, verify, reject, edit) and **Audit** (newest first, filter blocked / allowed). Table descriptions, glossary and usage have no client tabs; they stay available through the admin API (section 14.2) unchanged (approved spec change, 2026-11-16).
-- Every view has loading, empty and error states. Every visible control works. No mock data. Clean developer-tool style with Tailwind, follows system light/dark theme, accessible labels and keyboard use.
+- Every view has loading (skeletons where content is expected), empty and error states, and error boundaries. Every visible control works. No mock data. Neutral developer-tool style with one accent colour, light and dark themes (system by default), subtle motion that respects `prefers-reduced-motion`, accessible labels, visible focus and keyboard use.
 
 ---
 

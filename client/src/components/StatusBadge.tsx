@@ -2,7 +2,7 @@ const TONES: Record<string, string> = {
   green: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
   red: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
   amber: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
-  blue: 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300',
+  blue: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300',
   gray: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
 }
 
@@ -11,8 +11,6 @@ const STATUS_TONE: Record<string, keyof typeof TONES> = {
   verified: 'green',
   allowed: 'green',
   blocked: 'red',
-  failed: 'red',
-  rejected: 'red',
   awaiting_clarification: 'amber',
   awaiting_approval: 'amber',
   needs_approval: 'amber',

@@ -48,9 +48,9 @@ export function AdminView() {
               aria-controls={`panel-${t.id}`}
               tabIndex={tab === t.id ? 0 : -1}
               onClick={() => setTab(t.id)}
-              className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-sky-500 ${
+              className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-indigo-500 ${
                 tab === t.id
-                  ? 'border-sky-600 text-zinc-900 dark:border-sky-400 dark:text-zinc-100'
+                  ? 'border-indigo-600 text-zinc-900 dark:border-indigo-400 dark:text-zinc-100'
                   : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
               }`}
             >

@@ -4,15 +4,15 @@ Verified facts only. Read at the start of every session (see `CLAUDE.md` section
 
 ## Handoff
 
-- **Current milestone:** M8 — Finish: **complete 2026-11-17** (report given). All milestones complete; the Definition of Done is met except the demo video link (§25 item 1; README placeholder line "Demo video: (link coming soon)" under the tagline), which the user adds after recording (user decision 6). README rewritten 2026-11-17 for the new §25 structure (approved spec change), not committed yet.
-- **Current task:** none. The project is finished (IMPLEMENTATION.md 0, 3); no further features.
+- **Current milestone:** M8 — Finish: complete 2026-11-17. Post-M8 client chat-style redesign (approved spec change): **complete 2026-11-17** (browser check 12/12 OK, final report given). The Definition of Done is met except the demo video link (§25 item 1; README placeholder), which the user adds after recording.
+- **Current task:** none. No further work planned.
 - **Frozen (user decision A, 2026-11-14, NOTES.md D72; answer prompt reopened by the user 2026-11-16 for D83 and D88 only):** prompts (`src/agent/prompts/`), table descriptions, glossary, examples and retrieval settings (table top-k 8) are frozen. No further tuning. q11/q14 are recorded in NOTES.md Known limitations (similarity-only retrieval misses bridge tables like `sales.customer`; next step would be foreign-key expansion, out of scope). **M8 reminders for the README:** (1) limitations: the bridge-table retrieval limitation; (2) limitations: "partial-year data can skew period comparisons" (moment 6 re-check, NOTES.md Known limitations); (3) MCP setup for **both** Claude Desktop and Claude Code (`claude mcp add`), from "M7 MCP client setup" below (user instruction 2026-11-17, §25 item 12).
-- **Last completed step:** runner timeout fix applied and verified; user browser check 9/9 OK; clone dev servers stopped (Vite PID 19476 and server PID 23348 killed with `taskkill /T /F`, ports 4000 and 5173 free); the scratchpad `clone/` folder deleted with the copied `.env` files (first `rm -rf` hit "Device or resource busy" on the empty `server/` folder while the exiting parent process still held it; the retry succeeded; `test -e` confirms it is gone; no `.env*` file left in the scratchpad); M8 report given.
-- **Next step:** none. Optional for the user: commit the remaining changes; replace the README demo video placeholder with the link (§25 item 1).
-- **Files changed but unfinished:** none. Uncommitted: `IMPLEMENTATION.md`, `PROGRESS.md`, `README.md` (post-clone fixes), `server/test/evals/runner.test.ts` (timeout fix); `NOTES.md` git-ignored. Committed locally: `76e3dfb wip(m8): Dockerfiles and README` (not pushed). Local Docker images `querycraft-server:m8`, `querycraft-client:m8` kept.
+- **Last completed step:** user browser check of the redesign: 12 of 12 OK; redesign report given.
+- **Next step:** none. Optional for the user: commit the uncommitted changes; replace the README demo video placeholder with the link.
+- **Files changed but unfinished:** none. Uncommitted: the client redesign (37 tracked files changed or removed, 18 new files under `client/src/`) plus `IMPLEMENTATION.md` (§15, §6 row), `PROGRESS.md`, `README.md` (client row, test count); `NOTES.md` git-ignored. Committed by the user: `1a0bddd chore: before UI redesign` (README rewrite, §25, runner timeout fix); `main` is level with `origin/main`.
 - **Pending approvals / questions:** none.
-- **Open items to investigate:** none. (1) Closed 2026-11-17: the intermittent `runner.test.ts` failure was the 5,000 ms default timeout under parallel load; fixed with an explicit 30,000 ms timeout on the two dataset-wide dry-run tests (approved by the user); 2 full runs passed (NOTES.md Problems).
-- **Last command results (2026-11-17, end of M8):** server `pnpm typecheck` 0, `pnpm lint` 0, `pnpm build` 0, `pnpm test` 0 twice after the fix (47 files, 860 tests, 58.8 s / 53.6 s). Client `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (9 files, 76 tests), `pnpm build` 0. Docker builds 0 (both images). Demo script exit 0. Clone deleted (confirmed).
+- **Open items to investigate:** none.
+- **Last command results (2026-11-17, after the client redesign):** client `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (11 files, 111 tests), `pnpm build` 0; Vite smoke check: `/` and the main modules 200. Server untouched since the end of M8 (typecheck 0, lint 0, build 0, test 0: 47 files, 860 tests).
 
 ### M4 real runs, day 2 (2026-11-16, approved by the user)
 
@@ -190,6 +190,23 @@ The user approved all of these on 2026-11-13, including the changes reported as 
 | M6 — Client | Complete (2026-11-16; report given) |
 | M7 — MCP server | Complete (2026-11-17; report given) |
 | M8 — Finish | Complete (2026-11-17; report given) |
+
+## Client redesign tasks (approved spec change and plan, 2026-11-17; complete 2026-11-17)
+
+Decisions (user, 2026-11-17): (1) `localStorage` entries `{ id, title, updatedAt }`, old id-only entries fetched once and cached; (2) indigo accent on neutral zinc, amber only for clarification/approval, red only for blocked, green for success; (3) system fonts (Inter if installed, `ui-monospace`), no web font; (4) "Stop waiting" included, client-side only; (5) `#/history` redirects to `#/`. Ctrl/Cmd+Shift+O kept (the button is the fallback). No new dependencies.
+
+- [x] 1. Pure logic with tests: titles and grouping, theme, scroll check, live step labels and summary line, history entries and migration, routes, `QuestionView` → turn mapping, stop waiting (client typecheck 0, lint 0, test 0: 11 files, 106 tests)
+- [x] 2. Theme (`themeStore`, `dark` class, no-flash script) and routes
+- [x] 3. Sidebar (groups, active row, remove menu, Admin link, theme toggle, mobile drawer, shortcut)
+- [x] 4. Thread and messages (empty state, user and assistant messages, inline clarification / approval / blocked / cannot-answer, details, step summary, feedback, re-run)
+- [x] 5. Composer and scrolling (auto-grow, Enter / Shift+Enter, counter near the limit, stop waiting, hint, jump to latest)
+- [x] 6. Restyle Admin, result table and chart tooltip; skeletons; remove `features/history/`
+- [x] 7. Client typecheck, lint, test, build (all 0; 11 files, 111 tests); README structure row and test count (971); NOTES.md D96 and Numbers; Vite smoke check (page and modules 200)
+- [x] 8. Browser checklist for the user (given 2026-11-17; user result: 12 of 12 OK, see "Client redesign browser check")
+
+### Client redesign browser check (user, 2026-11-17)
+
+All 12 checklist items OK: new conversation (empty state, cards, Ctrl/Cmd+Shift+O and the button), suggested question (user message, live steps, `#/c/<id>`, highlighted sidebar row under Today), collapse after completion (summary line, expandable steps, Details with SQL copy, tables and tokens, feedback with optional comment), follow-up in the same thread (Enter / Shift+Enter), clarification inline ("You chose" kept), approval inline, auto-scroll stop and "Jump to latest", switching conversations (skeleton, rebuilt thread, Re-run, `#/history` → `#/`), remove from history, theme toggle (kept after reload, no flash), mobile width (drawer, Escape, no horizontal scroll), Admin link (token prompt, Examples and Audit).
 
 ## Milestone tasks (M8, plan approved 2026-11-17; complete 2026-11-17)
 
@@ -435,7 +452,7 @@ Reference counts (as `postgres`): `sales.customer` 19,820 rows; sales orders 202
 |---|---|---|
 | Typecheck | ✓ (2026-11-17) | ✓ (2026-11-17) |
 | Lint | ✓ (2026-11-17) | ✓ (2026-11-17) |
-| Tests | ✓ 9 files, 76 tests (2026-11-17, end of M8) | ✓ 47 files, 860 tests (2026-11-17, end of M8) |
+| Tests | ✓ 11 files, 111 tests (2026-11-17, after the client redesign) | ✓ 47 files, 860 tests (2026-11-17, end of M8) |
 | Build | ✓ (2026-11-17) | ✓ (2026-11-17) |
 
 ## Facts recorded
@@ -505,6 +522,7 @@ Published figures given by the user on 2026-11-13. **Published, not verified fro
 
 ## Approved spec changes
 
+- **2026-11-17 — Chat-style client redesign (§15, after M8).** Approved by the user with the plan and decisions 1–5 (see "Client redesign tasks"); applied by the agent to `IMPLEMENTATION.md` §15 (Layout, State, Thread, Composer and the final bullet replace Views, State, Ask view and History view) and the §6 folder row (`history/` → `sidebar/`). Client only; existing §14 endpoints; no new dependencies.
 - **2026-11-17 — §25 README structure (after M8).** Approved by the user; applied by the agent to `IMPLEMENTATION.md` §25. The README was rewritten for two audiences (skimmers and engineers): title, tagline and demo video placeholder; What it does; How it works; Key results; Architecture; Request flow; Safety; Evaluation; Engineering highlights; Tech stack; Quick start; MCP; Limitations and next steps; Internals (simplified agent graph, at most about 12 nodes with the clarify and approval pauses and the retry loop; app data model ER diagram, main tables and links only); Setup details with the scripts and project structure tables. The separate Features list is dropped (covered by "How it works"); the demo video link moves from item 15 to item 1.
 - **2026-11-17 — §2 O5 wording (M8 start).** Approved by the user; applied by the agent: O5 is now proven by "MCP integration test + real MCP client check over stdio (demo moment 8)" (was "manual Claude Desktop check"), matching the moment 8 change.
 - **2026-11-17 — Demo moment 8 verified with a real MCP client instead of Claude Desktop (M7).** Approved by the user; applied by the agent to `IMPLEMENTATION.md` §22 M7 (Tasks, Acceptance), §23 moment 8 and §25 item 12. The agent verifies moment 8 with a throwaway script (not committed) that uses the MCP SDK client to launch the built `server/dist/mcp/server.js` over stdio and calls `list_tables` (67 tables), `ask_question` "How many customers do we have?" (one real run; 19,820) and `run_safe_query` "DELETE FROM sales.customer" (blocked `NOT_SELECT`), then reads the runs back from `questions` and `audit_events` (`source = mcp`). The M8 README gives MCP setup for both Claude Desktop and Claude Code (`claude mcp add`). Result: "M7 demo moment 8 check". NOTES.md D93.

@@ -1,4 +1,5 @@
 import {
+  NODE_NAMES,
   QUESTION_STATUSES,
   type AnswerData,
   type ApprovalRequest,
@@ -8,6 +9,7 @@ import {
   type NodeName,
   type QuestionEvent,
   type QuestionStatus,
+  type QuestionView,
 } from '../types/api'
 
 // Pure state transitions of the Ask view (askStore wraps them). One "turn" is one
@@ -18,6 +20,8 @@ export interface StepItem {
   node: NodeName
   status: 'started' | 'completed'
   detail: Record<string, unknown> | null
+  /** Known for steps of a stored record (its trace); live steps have none. */
+  durationMs: number | null
 }
 
 export type Outcome =
@@ -26,21 +30,32 @@ export type Outcome =
   | { kind: 'cannot_answer'; reason: string }
   | { kind: 'error'; code: string; message: string }
 
+/** A pause the user already answered, kept so the thread reads as a conversation. */
+export type Exchange =
+  | { kind: 'clarification'; question: string; answer: string }
+  | { kind: 'approval'; estimatedCost: number; approved: boolean }
+
 export interface Turn {
   questionId: string
   question: string
   status: QuestionStatus
   /** True while an event stream for this turn is open. */
   streaming: boolean
+  /** The user stopped waiting: the stream is closed but the run goes on on the server. */
+  detached: boolean
   steps: StepItem[]
   /** Index in `steps` where the current run segment starts (a replay restarts there). */
   segmentStart: number
   clarification: ClarificationRequest | null
   approval: ApprovalRequest | null
+  /** Answered clarifications and approval decisions of this turn, in order (live only). */
+  exchanges: Exchange[]
   outcome: Outcome | null
   /** Rows fetched by a rerun when the answer came from the stored record (rows: null). */
   rerunRows: { columns: Column[]; rows: unknown[][]; truncated: boolean } | null
   feedback: { rating: 'up' | 'down'; exampleCreated: boolean } | null
+  /** Processing time reported by the server (answer event or stored record). */
+  latencyMs: number | null
 }
 
 export interface AskState {
@@ -57,6 +72,9 @@ export type AskAction =
   | { type: 'stream_failed'; questionId: string; message: string }
   | { type: 'rerun_rows'; questionId: string; columns: Column[]; rows: unknown[][]; truncated: boolean }
   | { type: 'feedback_sent'; questionId: string; rating: 'up' | 'down'; exampleCreated: boolean }
+  | { type: 'conversation_loaded'; conversationId: string; questions: QuestionView[] }
+  | { type: 'stop_waiting'; questionId: string }
+  | { type: 'exchange_added'; questionId: string; exchange: Exchange }
   | { type: 'reset' }
 
 export const initialAskState: AskState = { conversationId: null, turns: [] }
@@ -66,17 +84,17 @@ function toStatus(value: string): QuestionStatus {
 }
 
 function applyStep(steps: StepItem[], node: NodeName, status: 'started' | 'completed', detail: Record<string, unknown> | null): StepItem[] {
-  if (status === 'started') return [...steps, { node, status, detail: null }]
+  if (status === 'started') return [...steps, { node, status, detail: null, durationMs: null }]
   // Complete the most recent started step of this node.
   for (let i = steps.length - 1; i >= 0; i -= 1) {
     const step = steps[i]
     if (step !== undefined && step.node === node && step.status === 'started') {
       const next = steps.slice()
-      next[i] = { node, status: 'completed', detail }
+      next[i] = { node, status: 'completed', detail, durationMs: null }
       return next
     }
   }
-  return [...steps, { node, status, detail }]
+  return [...steps, { node, status, detail, durationMs: null }]
 }
 
 function applyEvent(turn: Turn, event: QuestionEvent): Turn {
@@ -90,7 +108,7 @@ function applyEvent(turn: Turn, event: QuestionEvent): Turn {
     case 'blocked':
       return { ...turn, status: 'blocked', outcome: { kind: 'blocked', data: event.data } }
     case 'answer':
-      return { ...turn, status: 'answered', outcome: { kind: 'answer', data: event.data } }
+      return { ...turn, status: 'answered', outcome: { kind: 'answer', data: event.data }, latencyMs: event.data.latencyMs }
     case 'cannot_answer':
       return { ...turn, status: 'cannot_answer', outcome: { kind: 'cannot_answer', reason: event.data.reason } }
     case 'error':
@@ -122,13 +140,16 @@ export function askReducer(state: AskState, action: AskAction): AskState {
             question: action.question,
             status: 'running',
             streaming: false,
+            detached: false,
             steps: [],
             segmentStart: 0,
             clarification: null,
             approval: null,
+            exchanges: [],
             outcome: null,
             rerunRows: null,
             feedback: null,
+            latencyMs: null,
           },
         ],
       }
@@ -137,7 +158,7 @@ export function askReducer(state: AskState, action: AskAction): AskState {
         // A paused node (clarify / approval) never completed: it runs again on resume,
         // so its dangling `started` step is dropped instead of shown twice.
         const steps = t.steps.filter((x) => x.status === 'completed')
-        return { ...t, status: 'running', streaming: true, steps, segmentStart: steps.length, clarification: null, approval: null }
+        return { ...t, status: 'running', streaming: true, detached: false, steps, segmentStart: steps.length, clarification: null, approval: null }
       })
     case 'stream_replayed':
       // The server resends the segment from its start: drop what this segment already showed.
@@ -153,6 +174,7 @@ export function askReducer(state: AskState, action: AskAction): AskState {
       return updateTurn(state, action.questionId, (t) => ({
         ...t,
         streaming: true,
+        detached: false,
         steps: t.steps.slice(0, t.segmentStart),
         clarification: null,
         approval: null,
@@ -173,8 +195,71 @@ export function askReducer(state: AskState, action: AskAction): AskState {
       }))
     case 'feedback_sent':
       return updateTurn(state, action.questionId, (t) => ({ ...t, feedback: { rating: action.rating, exampleCreated: action.exampleCreated } }))
+    case 'conversation_loaded':
+      return { conversationId: action.conversationId, turns: action.questions.map(turnFromRecord) }
+    case 'stop_waiting':
+      // Only the client stops following; a later reconnect shows the result.
+      return updateTurn(state, action.questionId, (t) => (t.streaming ? { ...t, streaming: false, detached: true } : t))
+    case 'exchange_added':
+      return updateTurn(state, action.questionId, (t) => ({ ...t, exchanges: [...t.exchanges, action.exchange] }))
     case 'reset':
       return initialAskState
+  }
+}
+
+function outcomeOf(q: QuestionView): Outcome | null {
+  switch (q.status) {
+    case 'answered':
+      if (q.answer === null) return null
+      return {
+        kind: 'answer',
+        data: {
+          answer: q.answer,
+          explanation: q.explanation ?? '',
+          sql: q.sql ?? '',
+          tablesUsed: q.tablesUsed,
+          assumptions: q.assumptions,
+          columns: q.columns,
+          // Rows are never stored: the thread offers a re-run.
+          rows: null,
+          rowCount: q.rowCount ?? 0,
+          truncated: q.truncated ?? false,
+          tokens: q.tokens,
+          latencyMs: q.latencyMs,
+        },
+      }
+    case 'blocked':
+      return q.blocked === null ? null : { kind: 'blocked', data: q.blocked }
+    case 'cannot_answer':
+      return { kind: 'cannot_answer', reason: q.reason ?? '' }
+    case 'failed':
+      return { kind: 'error', code: q.error?.code ?? q.errorCode ?? 'INTERNAL_ERROR', message: q.error?.message ?? 'The question failed.' }
+    default:
+      return null
+  }
+}
+
+/** A stored question as a thread turn (opening a conversation from the sidebar). */
+export function turnFromRecord(q: QuestionView): Turn {
+  const steps: StepItem[] = q.trace.flatMap((t) => {
+    const node = NODE_NAMES.find((n) => n === t.node)
+    return node === undefined ? [] : [{ node, status: 'completed' as const, detail: t.detail ?? null, durationMs: t.durationMs }]
+  })
+  return {
+    questionId: q.id,
+    question: q.question,
+    status: q.status,
+    streaming: false,
+    detached: false,
+    steps,
+    segmentStart: steps.length,
+    clarification: q.status === 'awaiting_clarification' ? q.clarification : null,
+    approval: q.status === 'awaiting_approval' ? q.approval : null,
+    exchanges: [],
+    outcome: outcomeOf(q),
+    rerunRows: null,
+    feedback: null,
+    latencyMs: q.latencyMs,
   }
 }
 
@@ -182,6 +267,8 @@ export function askReducer(state: AskState, action: AskAction): AskState {
 export function activeTurn(state: AskState): Turn | null {
   const last = state.turns.at(-1)
   if (last === undefined) return null
-  const active = last.streaming || last.status === 'running' || last.status === 'awaiting_clarification' || last.status === 'awaiting_approval'
+  // A detached run still runs on the server, but the user chose not to wait for it.
+  const running = last.status === 'running' && !last.detached
+  const active = last.streaming || running || last.status === 'awaiting_clarification' || last.status === 'awaiting_approval'
   return active ? last : null
 }
