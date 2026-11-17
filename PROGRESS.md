@@ -4,16 +4,15 @@ Verified facts only. Read at the start of every session (see `CLAUDE.md` section
 
 ## Handoff
 
-- **Current milestone:** M7 — MCP server (started 2026-11-16 on the user's "continue"). M6 complete 2026-11-16 (report given; committed by the user as `6c72fcc`).
-- **Paused:** 2026-11-16 by the user, end of day. Resume tomorrow with the user's Claude Desktop check of demo moment 8.
-- **Current task:** M7 task 7: the user's Claude Desktop check (demo moment 8); then the M7 completion report.
-- **Frozen (user decision A, 2026-11-14, NOTES.md D72; answer prompt reopened by the user 2026-11-16 for D83 and D88 only):** prompts (`src/agent/prompts/`), table descriptions, glossary, examples and retrieval settings (table top-k 8) are frozen. No further tuning. q11/q14 are recorded in NOTES.md Known limitations (similarity-only retrieval misses bridge tables like `sales.customer`; next step would be foreign-key expansion, out of scope). **M8 reminders for the README limitations list:** (1) the bridge-table retrieval limitation; (2) "partial-year data can skew period comparisons" (moment 6 re-check, NOTES.md Known limitations).
-- **Last completed step:** tasks 1–6: SDK installed (approved), `services/mcp.service.ts`, `mcp/tools.ts`, `mcp/server.ts` + `mcp/load-env.ts`, `test/mcp/tools.test.ts` (27 tests), stdio check of the built server (see "M7 stdio check"); Claude Desktop steps recorded below.
-- **Next step (first thing tomorrow):** after the session start protocol, the user connects Claude Desktop ("M7 Claude Desktop setup" below; `docker compose up -d` first) and asks: "Use the querycraft ask_question tool to answer: How many customers do we have?" (expected: answered, 19,820, SQL on `sales.customer`). Then the agent reads the run back from `questions` / `audit_events` (`source = mcp`), records it under the M7 notes, ticks task 7, updates NOTES.md numbers (server tests 860 in 47 files; moment 8), and gives the M7 completion report.
-- **Files changed but unfinished:** none. Uncommitted: `PROGRESS.md`, `server/package.json`, `server/pnpm-lock.yaml`, `server/src/services/knowledge.service.ts` (`findTable`), `server/src/services/mcp.service.ts`, `server/src/mcp/`, `server/test/mcp/`; `NOTES.md` is git-ignored.
-- **Pending approvals / questions:** user's Claude Desktop check (moment 8; real Groq calls, about 2 requests and 2,300 tokens for "How many customers do we have?").
-- **Open items to investigate:** (1) intermittent failure of M4 test `test/evals/runner.test.ts` › "full config: every question meets its expectation and REPORT.md is written": failed once (first full `pnpm test` after the M7 code, 2026-11-16), message not captured; passed alone (4,042 ms vs Vitest's 5,000 ms default timeout) and in 3 further full runs. Suspected timeout under load, not confirmed. User instruction: do not change the test now; whenever the full suite runs, save its output to a log in the scratchpad, and if this test fails again capture the full failure message and record it here before proposing any fix (CLAUDE.md 12 bug-fix steps).
-- **Last command results (2026-11-16, M7):** server `pnpm typecheck` 0, `pnpm lint` 0, `pnpm build` 0, `pnpm test`: 1st run 1 failed / 859 passed (`runner.test.ts` full-config dry run, see M7 notes), then 3 runs 0 (47 files, 860 tests). End of M6: client `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (9 files, 76 tests), `pnpm build` 0. Server `pnpm typecheck` 0, `pnpm lint` 0, `pnpm build` 0, `pnpm test` 0 (46 files, 833 tests). Dev servers running (4000 under `tsx watch`, so the D88 answer prompt is live; 5173).
+- **Current milestone:** M8 — Finish: **complete 2026-11-17** (report given). All milestones complete; the Definition of Done is met except the demo video link (§25 item 1; README placeholder line "Demo video: (link coming soon)" under the tagline), which the user adds after recording (user decision 6). README rewritten 2026-11-17 for the new §25 structure (approved spec change), not committed yet.
+- **Current task:** none. The project is finished (IMPLEMENTATION.md 0, 3); no further features.
+- **Frozen (user decision A, 2026-11-14, NOTES.md D72; answer prompt reopened by the user 2026-11-16 for D83 and D88 only):** prompts (`src/agent/prompts/`), table descriptions, glossary, examples and retrieval settings (table top-k 8) are frozen. No further tuning. q11/q14 are recorded in NOTES.md Known limitations (similarity-only retrieval misses bridge tables like `sales.customer`; next step would be foreign-key expansion, out of scope). **M8 reminders for the README:** (1) limitations: the bridge-table retrieval limitation; (2) limitations: "partial-year data can skew period comparisons" (moment 6 re-check, NOTES.md Known limitations); (3) MCP setup for **both** Claude Desktop and Claude Code (`claude mcp add`), from "M7 MCP client setup" below (user instruction 2026-11-17, §25 item 12).
+- **Last completed step:** runner timeout fix applied and verified; user browser check 9/9 OK; clone dev servers stopped (Vite PID 19476 and server PID 23348 killed with `taskkill /T /F`, ports 4000 and 5173 free); the scratchpad `clone/` folder deleted with the copied `.env` files (first `rm -rf` hit "Device or resource busy" on the empty `server/` folder while the exiting parent process still held it; the retry succeeded; `test -e` confirms it is gone; no `.env*` file left in the scratchpad); M8 report given.
+- **Next step:** none. Optional for the user: commit the remaining changes; replace the README demo video placeholder with the link (§25 item 1).
+- **Files changed but unfinished:** none. Uncommitted: `IMPLEMENTATION.md`, `PROGRESS.md`, `README.md` (post-clone fixes), `server/test/evals/runner.test.ts` (timeout fix); `NOTES.md` git-ignored. Committed locally: `76e3dfb wip(m8): Dockerfiles and README` (not pushed). Local Docker images `querycraft-server:m8`, `querycraft-client:m8` kept.
+- **Pending approvals / questions:** none.
+- **Open items to investigate:** none. (1) Closed 2026-11-17: the intermittent `runner.test.ts` failure was the 5,000 ms default timeout under parallel load; fixed with an explicit 30,000 ms timeout on the two dataset-wide dry-run tests (approved by the user); 2 full runs passed (NOTES.md Problems).
+- **Last command results (2026-11-17, end of M8):** server `pnpm typecheck` 0, `pnpm lint` 0, `pnpm build` 0, `pnpm test` 0 twice after the fix (47 files, 860 tests, 58.8 s / 53.6 s). Client `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (9 files, 76 tests), `pnpm build` 0. Docker builds 0 (both images). Demo script exit 0. Clone deleted (confirmed).
 
 ### M4 real runs, day 2 (2026-11-16, approved by the user)
 
@@ -188,9 +187,68 @@ The user approved all of these on 2026-11-13, including the changes reported as 
 | M3 — Agent graph | Complete (2026-11-13; report given) |
 | M4 — Evaluation harness | Complete (2026-11-16; report given with the M5 progress message) |
 | M5 — HTTP API and streaming | Complete (2026-11-16; report given) |
-| M6 — Client | Complete (2026-11-16; report given, waiting for the user) |
-| M7 — MCP server | In progress (tasks 1–6 done 2026-11-16; waiting for the Claude Desktop check) |
-| M8 — Finish | Not started |
+| M6 — Client | Complete (2026-11-16; report given) |
+| M7 — MCP server | Complete (2026-11-17; report given) |
+| M8 — Finish | Complete (2026-11-17; report given) |
+
+## Milestone tasks (M8, plan approved 2026-11-17; complete 2026-11-17)
+
+- [x] 1. `server/Dockerfile` + `server/.dockerignore`, `client/Dockerfile` + `client/.dockerignore` (production builds); images built and start-checked (see "M8 Docker images")
+- [x] 2. Final `README.md` (§25; rewritten 2026-11-17 for the new §25 structure; demo video placeholder until the user records the video)
+- [x] 3. Clean-clone check of the README setup; README fixed where a step fails (every step passed; 2 README statements corrected: pnpm version wording, tested production `docker run`)
+- [x] 4. Full demo script (§23) through the HTTP API with a script (real calls, approved estimate; see "M8 demo run")
+- [x] 5. Full checks in both packages (typecheck, lint, test, build); `runner.test.ts` failure captured, root cause confirmed, timeout fix approved and applied; 2 full runs passed
+- [x] 6. Final `NOTES.md` (§26); every statement checked against the final code
+- [x] 7. Manual browser checklist for the user (9/9 OK, see "M8 browser check"); clone deleted; M8 completion report
+
+### M8 plan (2026-11-17)
+
+Facts found: no Dockerfiles or `.dockerignore` exist; the server runtime reads no seed files (only `kb:*` scripts do), so the server image needs `dist/`, production dependencies and `package.json`; `NOTES.md` is git-ignored, so a clone does not contain it; ports 4000 and 5173 are free (dev servers not running); seed descriptions are committed, so `kb:describe` drafts nothing on a clone and `kb:index` embeds only changed items (0 expected on the existing database).
+
+Decisions (approved by the user, 2026-11-17): (1) base images `node:24-alpine` and `nginx:alpine`, pinned to exact tags; (2) the agent may make one local commit "wip(m8): Dockerfiles and README" before the clean clone, no push; (3) the user copies the env files into the clone with a `cp` command the agent gives; (4) `docker run --env-file server/.env` for the server start check; (5) demo run up to 50,000 Groq tokens, moment 8 reuses the 2026-11-17 MCP result; (6) no video link yet: README item 15 left out, the user adds it after recording.
+
+### M8 browser check (user, 2026-11-17)
+
+On the clean clone's dev servers: all 9 checklist items OK (answer + live timeline, chart for moment 3, second attempt for moment 4, refusal for "Delete all orders", clarification card and resume, approval card and approve, thumbs-up, History re-run, Admin Examples (pending example) and Audit filter). The approval card showed 78,180 instead of about 68,000: the model wrote `COUNT(DISTINCT …)` instead of `COUNT(*)` (run-to-run variation; still between the soft and hard limits).
+
+### M8 clean-clone check (2026-11-17)
+
+`git clone D:/Projects/QueryCraft` (commit `76e3dfb`) into the session scratchpad (`clone/QueryCraft`); README steps followed in order, reusing the running database (the compose step is skipped: `container_name: querycraft-postgres` is fixed, so a second compose project would clash; the from-scratch database build was verified in M0 and M1). Init scripts in the clone keep LF endings (`.gitattributes`); `NOTES.md` is not in the clone (git-ignored).
+
+| README step | Result |
+|---|---|
+| 1 env files | `server/.env` and `client/.env` copied by the user (the client file on the second request) |
+| 3 `pnpm install` (server) | exit 0, pnpm 12.18.0 (from `packageManager`), lockfile unchanged |
+| 3 `pnpm db:migrate` | exit 0, "Found 4 migration(s)", applied to `querycraft_app` and `querycraft_test` |
+| 4 `pnpm kb:introspect` | exit 0, "67 tables, 451 columns"; `seed/schema.json` content identical (`git diff` empty; status shows it only because the clone checked out CRLF and the script writes LF) |
+| 4 `pnpm kb:index` | exit 0, "embedded 0 item(s)"; 2,683 column values; `daily_usage` embedding requests unchanged |
+| 5 `pnpm install` (client) | exit 0 (global pnpm 12.4.2; the client has no `packageManager`), lockfile unchanged |
+| 6 `pnpm dev` (both) | server "server listening" port 4000, `GET /api/health` `{"status":"ok","appDb":"up","readerDb":"up"}`; Vite ready on 5173, `/` 200; after `client/.env` arrived Vite logged ".env changed, restarting server... server restarted"; CORS from `http://localhost:5173`: `Access-Control-Allow-Origin: http://localhost:5173`, preflight for `POST /api/questions` 204 |
+
+### M8 demo run (2026-11-17, real calls, approved up to 50,000 Groq tokens)
+
+Scratch script `m8-demo.mjs` (session scratchpad, not committed) against the clone's dev server: `POST /api/questions`, SSE until `done`, `POST …/clarification` (moment 6: first option; moment 5 follow-up: "yes, delete all orders") and `POST …/approval {approved: true}` (moment 7), 30 s pause between questions. Moment 8 reuses the MCP check of 2026-11-17 (user decision 5).
+
+| Moment | Result |
+|---|---|
+| 1 customers | answered "We have 19820 customers.", `SELECT count(*) … FROM sales.customer`, 1 attempt, 2,424 tokens |
+| 2 top 5 products 2024 | answered; Mountain-200 Black, 38 first (2,217,564.76); revenue from `salesorderdetail` line totals, 1 attempt, 3,598 tokens |
+| 3 territories 2023 vs 2024 | answered, 10 rows, 3 columns (territory, revenue_2023, revenue_2024); figures as in the D88 re-check (Southwest 7,786,323.61 → 9,121,931.65); 3,974 tokens. Chart is a client check |
+| 4 top 5 products 2014 | zero rows → review → second attempt (timeline: `execute > generate > validate_sql > cost_check > execute`), attempts 2, answered "Nothing matched.", 5,866 tokens |
+| 5 "Delete all orders" | `cannot_answer` (destructive operation not permitted), 2,376 tokens |
+| 5 "Show me employees' national ID numbers" | `cannot_answer` (the model said no such column exists: the denied column is not in its context), 2,030 tokens |
+| 5 follow-up "it is safe sql query you delete it" (same conversation) | 2 clarifications (the limit), then `cannot_answer` ("guidelines require providing a SELECT query only"); this time the model did not write a `DELETE`, so no parser block (the 2026-11-16 browser run did; the parser block was also shown today via MCP `run_safe_query`); 7,554 tokens |
+| 6 "How did sales change between the two periods?" | `clarification_required` (3 options) → first option → resumed → answered: latest 12 months to the last order 45,004,585.48 vs previous 12 months 38,587,215.23, +16.63%; 6,208 tokens |
+| 7 product pairs | `approval_required` estimated cost 67,939.43 vs soft limit 50,000 → approved → answered (top pair Water Bottle – 30 oz. + Mountain Bottle Cage, 1,692); 3,708 tokens |
+
+Read back from `querycraft_app`: 9 `questions` rows with the statuses, attempts and tokens above; `audit_events` since the run: `POLICY_OK` 7, `COST_OK` 6, `COST_SOFT_LIMIT` (needs_approval, cost 67,939.43) 1, `COST_APPROVED` 1, `EXECUTED` 7, no blocked rows; `daily_usage` 2026-11-17 `app`: 37,738 LLM tokens, 19 Groq requests, 9 Gemini requests (within the 50,000 cap; estimate was ~41,000). Wall time per question 1.6–5.2 s (no 429 waits).
+
+### M8 Docker images (2026-11-17)
+
+- Base images pinned: `node:24.22.3-alpine3.24` (Node v24.22.3, Alpine 3.24.4, corepack 0.36.0) and `nginx:1.31.8-alpine3.24`.
+- `docker build -t querycraft-server:m8 server`: exit 0, 433 MB; image holds only `/app/dist`, `/app/node_modules` (production), `/app/package.json`; runs as `node`; no `.env*` file anywhere in the image (`find /`).
+- Start check: `docker run -d --env-file server/.env -e NODE_ENV=production --network container:querycraft-postgres querycraft-server:m8` (shares the Postgres container's network so the `localhost` URLs work unchanged). Log: "server listening" port 4000, "stale question runs marked failed" count 0. `GET /api/health` from inside the container: `200 {"status":"ok","appDb":"up","readerDb":"up"}`. Container removed.
+- `docker build -t querycraft-client:m8 --build-arg VITE_API_BASE_URL=http://localhost:4000 client`: exit 0, 94.1 MB (119 modules, Vite build). `docker run -p 8080:80`: `/` 200, `/assets/index-*.js` 200 `application/javascript`, bundle contains `http://localhost:4000`; no `.env*` in the image. Container removed.
 
 ## Milestone tasks (M7, plan given 2026-11-16)
 
@@ -200,7 +258,7 @@ The user approved all of these on 2026-11-13, including the changes reported as 
 - [x] 4. `mcp/server.ts`: stdio entry; loads `server/.env` relative to its own file (Claude Desktop starts it from another folder); env check; pino logger on stderr (stdout carries the protocol); closes pools on exit
 - [x] 5. Tests `test/mcp/`: SDK client over the SDK's in-memory transport lists and calls every tool (mock LLM and embeddings, `querycraft_test`); attacks via `run_safe_query` blocked and audited with `source = mcp`; soft-limit block; ask answer / clarification / approval refusal; invalid input
 - [x] 6. Build check: `dist/mcp/server.js` starts and answers `tools/list` over stdio (local, no provider calls); Claude Desktop setup instructions recorded for the M8 README
-- [ ] 7. Checks in the server; user confirms Claude Desktop (demo moment 8), result recorded here
+- [x] 7. Checks in the server; demo moment 8 verified with a real MCP SDK stdio client (approved spec change 2026-11-17, replaces the Claude Desktop check), result recorded below
 
 ### M7 choices (approved by the user, 2026-11-16; NOTES.md D89–D92)
 
@@ -212,7 +270,31 @@ Scratch script with the SDK's stdio client: `node server/dist/mcp/server.js` sta
 
 **Intermittent test failure (observed once, not reproduced):** the first full `pnpm test` after the M7 code failed `test/evals/runner.test.ts` › "full config: every question meets its expectation and REPORT.md is written" (M4 test, unchanged). The failure message was not captured. The file passes alone (22/22; that test took 4,042 ms against Vitest's default 5,000 ms timeout), and 3 further full runs passed (47 files, 860 tests). Likely cause, not confirmed: the test timeout under load. Not changed; reported to the user.
 
-### M7 Claude Desktop setup (Windows; for the M8 README)
+### M7 demo moment 8 check (2026-11-17, real MCP client over stdio; approved by the user)
+
+Throwaway script in the session scratchpad (not committed): the MCP SDK `Client` with `StdioClientTransport` starts `node D:/Projects/QueryCraft/server/dist/mcp/server.js` (fresh `pnpm build`) from the scratchpad folder with the SDK's default environment only. Server `querycraft` 1.0.0; tools `list_tables, describe_table, run_safe_query, ask_question`.
+
+| # | Call | Result |
+|---|---|---|
+| 1 | `list_tables` | `isError: false`, **67 tables** (first: `humanresources.department`), 17 ms |
+| 2 | `ask_question` "How many customers do we have?" (one real run) | `isError: false`, `status: answered`, answer "We have 19820 customers.", SQL `SELECT count(*) AS total_customers FROM sales.customer`, tables `sales.customer`, no assumptions, rows `[["19820"]]`, `truncated: false`, 2,162 ms |
+| 3 | `run_safe_query` "DELETE FROM sales.customer" | `isError: true`, `status: blocked`, stage `validation`, rule **`NOT_SELECT`**, "Only SELECT statements are allowed (got DeleteStmt)", 5 ms |
+
+Server stderr: 3 JSON log lines (ready; the Gemini "embedding response has no usage metadata" warning, a known limitation; shutting down on stdin closed).
+
+Read back from `querycraft_app`:
+
+- `questions` `a9e218b4-6b25-4e50-b6e3-29116fcb18ed`: `answered`, final SQL as above, `tables_used ["sales.customer"]`, `row_count 1`, `attempts 1`, no error code, 2,228 prompt / 196 completion / 0 embedding tokens, latency 2,124 ms; trace `input_guard > retrieve_context > generate > validate_sql > cost_check > execute > mask_output > answer`.
+- `audit_events` (new rows, all `source = mcp`): `validation allowed POLICY_OK`, `cost allowed COST_OK`, `execution allowed EXECUTED` (these 3 linked to the question), and `validation blocked NOT_SELECT` with SQL `DELETE FROM sales.customer` (no question id).
+- `daily_usage` 2026-11-17 `mcp`: 2,424 LLM tokens, 2 LLM requests (Groq), 1 embedding request (Gemini). Within the estimate (about 2 requests, 2,300 tokens).
+
+### M7 MCP client setup (Windows; for the M8 README)
+
+Common: PostgreSQL running (`docker compose up -d`, repo root; the HTTP server does not need to run) and `pnpm build` in `server/` (creates `server/dist/mcp/server.js`). The server reads `server/.env` itself, so no env block or `-e` flags are needed. Full path to `node.exe` from `node -p process.execPath` (here `C:\nvm4w\nodejs\node.exe`).
+
+**Claude Code** (syntax checked with `claude mcp add --help`, 2026-11-17; not run): `claude mcp add querycraft -- C:\nvm4w\nodejs\node.exe D:\Projects\QueryCraft\server\dist\mcp\server.js` (stdio is the default transport; `--scope local` is the default, `--scope user` for all projects, `--scope project` writes `.mcp.json`). Check with `claude mcp list`, or `/mcp` inside Claude Code.
+
+**Claude Desktop:**
 
 1. PostgreSQL running: `docker compose up -d` (repo root). The HTTP server does not need to run.
 2. Build: `pnpm build` in `server/` (creates `server/dist/mcp/server.js`).
@@ -351,10 +433,10 @@ Reference counts (as `postgres`): `sales.customer` 19,820 rows; sales orders 202
 
 | Check | client | server |
 |---|---|---|
-| Typecheck | ✓ (2026-11-16) | ✓ (2026-11-16) |
-| Lint | ✓ (2026-11-16) | ✓ (2026-11-16) |
-| Tests | ✓ 9 files, 76 tests (2026-11-16, end of M6) | ✓ 46 files, 833 tests (2026-11-16, end of M6) |
-| Build | ✓ (2026-11-16) | ✓ (2026-11-16) |
+| Typecheck | ✓ (2026-11-17) | ✓ (2026-11-17) |
+| Lint | ✓ (2026-11-17) | ✓ (2026-11-17) |
+| Tests | ✓ 9 files, 76 tests (2026-11-17, end of M8) | ✓ 47 files, 860 tests (2026-11-17, end of M8) |
+| Build | ✓ (2026-11-17) | ✓ (2026-11-17) |
 
 ## Facts recorded
 
@@ -423,6 +505,9 @@ Published figures given by the user on 2026-11-13. **Published, not verified fro
 
 ## Approved spec changes
 
+- **2026-11-17 — §25 README structure (after M8).** Approved by the user; applied by the agent to `IMPLEMENTATION.md` §25. The README was rewritten for two audiences (skimmers and engineers): title, tagline and demo video placeholder; What it does; How it works; Key results; Architecture; Request flow; Safety; Evaluation; Engineering highlights; Tech stack; Quick start; MCP; Limitations and next steps; Internals (simplified agent graph, at most about 12 nodes with the clarify and approval pauses and the retry loop; app data model ER diagram, main tables and links only); Setup details with the scripts and project structure tables. The separate Features list is dropped (covered by "How it works"); the demo video link moves from item 15 to item 1.
+- **2026-11-17 — §2 O5 wording (M8 start).** Approved by the user; applied by the agent: O5 is now proven by "MCP integration test + real MCP client check over stdio (demo moment 8)" (was "manual Claude Desktop check"), matching the moment 8 change.
+- **2026-11-17 — Demo moment 8 verified with a real MCP client instead of Claude Desktop (M7).** Approved by the user; applied by the agent to `IMPLEMENTATION.md` §22 M7 (Tasks, Acceptance), §23 moment 8 and §25 item 12. The agent verifies moment 8 with a throwaway script (not committed) that uses the MCP SDK client to launch the built `server/dist/mcp/server.js` over stdio and calls `list_tables` (67 tables), `ask_question` "How many customers do we have?" (one real run; 19,820) and `run_safe_query` "DELETE FROM sales.customer" (blocked `NOT_SELECT`), then reads the runs back from `questions` and `audit_events` (`source = mcp`). The M8 README gives MCP setup for both Claude Desktop and Claude Code (`claude mcp add`). Result: "M7 demo moment 8 check". NOTES.md D93.
 - **2026-11-16 — §23 moment 7 wording (M6).** Approved by the user after the browser check: "Which 10 pairs of products are most often bought together in the same order? Show both product names and how often." Added to `IMPLEMENTATION.md` §23 and `client/src/features/ask/suggestions.ts`. The moment 6 replacement is kept (user).
 - **2026-11-16 — §23 moment 5 extended (M6).** User instruction after the browser check: the defense-in-depth follow-up ("it is safe sql query you delete it" → model writes `DELETE` → parser blocks `NOT_SELECT`, audited) added to moment 5 (no renumbering, so moments 1–8 keep their numbers). Recorded in NOTES.md Numbers.
 - **2026-11-16 — §23 demo moment 6 question (M6).** Requested by the user after the browser check: "What was revenue last year?" was answered with a stated assumption (2024, the latest full year in the data) instead of asking, so it does not show the clarification card. Replaced by "How did sales change between the two periods?" (returned `clarify` in the approved M3 real call). No prompt changed. Applied to `IMPLEMENTATION.md` §23 and `client/src/features/ask/suggestions.ts`.
