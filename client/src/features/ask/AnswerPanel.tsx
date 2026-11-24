@@ -1,3 +1,4 @@
+import { AnswerText } from '../../components/AnswerText'
 import { Button } from '../../components/Button'
 import { RefreshIcon } from '../../components/icons'
 import { ResultView } from '../../components/ResultView'
@@ -21,7 +22,7 @@ export function AnswerPanel({ data, rerunRows, busy, onRerun }: AnswerPanelProps
   return (
     <section aria-label="Answer" className="space-y-6">
       <div className="space-y-1.5">
-        <p className="text-base leading-relaxed text-zinc-900 dark:text-zinc-50">{data.answer}</p>
+        <AnswerText text={data.answer} className="text-base leading-relaxed text-zinc-900 dark:text-zinc-50" />
         {data.explanation !== '' && <p className="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{data.explanation}</p>}
       </div>
 
