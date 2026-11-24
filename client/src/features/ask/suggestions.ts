@@ -3,6 +3,9 @@
 /** Mirrors the server's QUESTION_MAX_LENGTH default (server/.env.example); the server enforces it. */
 export const QUESTION_MAX_LENGTH = 500
 
+/** Composer hint: the range of the demo's sales orders (sales.salesorderheader.orderdate). */
+export const SALES_DATA_HINT = 'Sales data covers May 2022 - June 2025.'
+
 export const SUGGESTED_QUESTIONS: readonly string[] = [
   'How many customers do we have?',
   'Top 5 products by revenue in 2024.',
@@ -18,7 +21,7 @@ export const SUGGESTED_QUESTIONS: readonly string[] = [
 export const STARTER_CARDS: readonly { question: string; shows: string }[] = [
   { question: 'How many customers do we have?', shows: 'A simple count' },
   { question: 'Compare sales by territory, 2023 vs 2024.', shows: 'A chart' },
-  { question: 'Top 5 products by revenue in 2014.', shows: 'Self-correction on an empty result' },
+  { question: 'Which 5 salespeople had the highest sales in 2024?', shows: 'A multi-table join' },
   { question: 'How did sales change between the two periods?', shows: 'A clarifying question' },
   {
     question: 'Which 10 pairs of products are most often bought together in the same order? Show both product names and how often.',

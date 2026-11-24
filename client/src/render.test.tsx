@@ -63,9 +63,11 @@ describe('views render', () => {
   it('a new conversation shows the heading, the demo cards and the composer', () => {
     const out = renderToStaticMarkup(<ChatView conversationId={null} />)
     expect(out).toContain('Ask your database anything')
-    expect(out).toContain('Top 5 products by revenue in 2014.')
+    expect(out).toContain('Which 5 salespeople had the highest sales in 2024?')
     expect(out).toContain('How did sales change between the two periods?')
     expect(out).toContain('Read-only. Every query is checked and audited.')
+    expect(out).toContain('Sales data covers May 2022 - June 2025.')
+    expect(out).toContain('A multi-table join')
     expect(out).toContain('Send question')
   })
 

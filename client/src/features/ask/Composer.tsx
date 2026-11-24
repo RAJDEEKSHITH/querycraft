@@ -3,7 +3,7 @@ import { Button } from '../../components/Button'
 import { ArrowUpIcon, StopIcon } from '../../components/icons'
 import { activeTurn } from '../../stores/ask-reducer'
 import { useAskStore } from '../../stores/askStore'
-import { QUESTION_MAX_LENGTH } from './suggestions'
+import { QUESTION_MAX_LENGTH, SALES_DATA_HINT } from './suggestions'
 
 // Composer (IMPLEMENTATION.md 15): auto-growing textarea, Enter sends, Shift+Enter adds a
 // line, a counter near the limit, "Stop waiting" (client only) while a question runs.
@@ -105,7 +105,7 @@ export function Composer() {
           </button>
         </div>
         <div id="composer-hint" className="mt-2 flex items-center justify-between gap-3 px-1 text-xs text-zinc-500 dark:text-zinc-400">
-          <span>Read-only. Every query is checked and audited.</span>
+          <span>Read-only. Every query is checked and audited. {SALES_DATA_HINT}</span>
           {text.length >= COUNTER_FROM && (
             <span className={`tabular-nums ${tooLong ? 'font-medium text-red-600 dark:text-red-400' : ''}`}>
               {text.length} / {QUESTION_MAX_LENGTH}

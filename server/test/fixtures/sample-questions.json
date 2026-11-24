@@ -1,0 +1,48 @@
+{
+  "dataRange": {
+    "schema": "sales",
+    "table": "salesorderheader",
+    "column": "orderdate",
+    "min": "2022-05-30",
+    "max": "2025-06-29",
+    "hint": "Sales data covers May 2022 - June 2025."
+  },
+  "cards": [
+    {
+      "question": "How many customers do we have?",
+      "shows": "A simple count",
+      "behaviour": "count",
+      "sql": "SELECT count(*) AS customers FROM sales.customer"
+    },
+    {
+      "question": "Compare sales by territory, 2023 vs 2024.",
+      "shows": "A chart",
+      "behaviour": "chart",
+      "sql": "SELECT t.name AS territory, sum(h.totaldue) FILTER (WHERE h.orderdate >= '2023-01-01' AND h.orderdate < '2024-01-01') AS revenue_2023, sum(h.totaldue) FILTER (WHERE h.orderdate >= '2024-01-01' AND h.orderdate < '2025-01-01') AS revenue_2024 FROM sales.salesorderheader h JOIN sales.salesterritory t ON t.territoryid = h.territoryid WHERE h.orderdate >= '2023-01-01' AND h.orderdate < '2025-01-01' GROUP BY t.name ORDER BY t.name"
+    },
+    {
+      "question": "Which 5 salespeople had the highest sales in 2024?",
+      "shows": "A multi-table join",
+      "behaviour": "join",
+      "sql": "SELECT p.firstname, p.lastname, sum(h.subtotal) AS sales FROM sales.salesorderheader h JOIN sales.salesperson s ON s.businessentityid = h.salespersonid JOIN person.person p ON p.businessentityid = s.businessentityid WHERE h.orderdate >= '2024-01-01' AND h.orderdate < '2025-01-01' GROUP BY p.businessentityid, p.firstname, p.lastname ORDER BY sales DESC LIMIT 5"
+    },
+    {
+      "question": "How did sales change between the two periods?",
+      "shows": "A clarifying question",
+      "behaviour": "clarify",
+      "followUpSql": "SELECT sum(subtotal) FILTER (WHERE orderdate >= '2023-01-01' AND orderdate < '2024-01-01') AS revenue_2023, sum(subtotal) FILTER (WHERE orderdate >= '2024-01-01' AND orderdate < '2025-01-01') AS revenue_2024 FROM sales.salesorderheader"
+    },
+    {
+      "question": "Which 10 pairs of products are most often bought together in the same order? Show both product names and how often.",
+      "shows": "Approval of an expensive query",
+      "behaviour": "approval",
+      "sql": "SELECT p1.name AS product_1, p2.name AS product_2, count(*) AS times_bought_together FROM sales.salesorderdetail a JOIN sales.salesorderdetail b ON a.salesorderid = b.salesorderid AND a.productid < b.productid JOIN production.product p1 ON p1.productid = a.productid JOIN production.product p2 ON p2.productid = b.productid GROUP BY p1.name, p2.name ORDER BY times_bought_together DESC LIMIT 10"
+    },
+    {
+      "question": "Delete all orders",
+      "shows": "Safety: writes are refused",
+      "behaviour": "refused_write",
+      "sql": "DELETE FROM sales.salesorderheader"
+    }
+  ]
+}
