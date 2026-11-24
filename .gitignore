@@ -21,3 +21,7 @@ server/evals/reports/*.jsonl
 .idea/
 
 NOTES.md
+# Private interview prep
+docs/INTERVIEW_PREP.md
+docs/INTERVIEW_PREP_PLAN.md
+docs/INTERVIEW_PREP_PROGRESS.md
