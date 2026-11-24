@@ -2,6 +2,7 @@ import { Annotation } from '@langchain/langgraph'
 import type { StoredColumn, TraceEntry } from '../db/schema.js'
 import type { RequestSource } from '../services/audit.service.js'
 import type { RetrievedContext } from '../services/retrieval.service.js'
+import type { DataRange } from './date-range.js'
 import type { SqlCandidate } from './output.js'
 
 // Agent state (IMPLEMENTATION.md 12.2). The state is checkpointed in the app
@@ -67,6 +68,10 @@ export const AgentState = Annotation.Root({
   /** Feedback for the next `generate` call: the failed SQL (if any) and the problem. */
   lastError: value<{ sql: string | null; problem: string } | null>(() => null),
   zeroRowReviewDone: value<boolean>(() => false),
+  /** Range of the date column a zero-row SQL filtered on (12.3); null when not looked up. */
+  dataRange: value<DataRange | null>(() => null),
+  /** The user's answer to a clarification asked after the range lookup: the period to use instead. */
+  periodChoice: value<string | null>(() => null),
   /** SQL that passed the policy, with the row limit applied (safety stage output). */
   checkedSql: value<string | null>(() => null),
   costEstimate: value<{ cost: number; softLimit: number; needsApproval: boolean } | null>(() => null),

@@ -50,6 +50,7 @@ export async function checkFit(
       previous: null,
       feedback: null,
       clarifyAllowed: true,
+      periodChoice: null,
     })
     promptChars = Math.max(promptChars, messages.reduce((sum, m) => sum + m.content.length, 0))
   }

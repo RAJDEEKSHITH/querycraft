@@ -15,7 +15,8 @@ import {
 import type { LlmClient } from './llm.js'
 import { generateOutput } from './output.js'
 import { buildAnswerMessages } from './prompts/answer.js'
-import { ZERO_ROW_REVIEW, buildGenerateMessages } from './prompts/generate.js'
+import { ZERO_ROW_REVIEW, buildGenerateMessages, zeroRowReviewWithRange } from './prompts/generate.js'
+import { lookUpDataRange } from './date-range.js'
 import { AgentState, type State, type Update } from './state.js'
 
 // The agent graph (IMPLEMENTATION.md 12.1, 12.3). Every SQL goes through the safety
@@ -187,6 +188,7 @@ export function buildAgentGraph(deps: AgentDeps) {
       previous: lastError?.sql == null ? null : { sql: lastError.sql, problem: lastError.problem },
       feedback: lastError !== null && lastError.sql === null ? lastError.problem : null,
       clarifyAllowed,
+      periodChoice: state.dataRange !== null && state.periodChoice !== null ? { range: state.dataRange, answer: state.periodChoice } : null,
     })
     const reply = await deps.llm.structured(messages, generateOutput(clarifyAllowed), { source: state.source, model: 'main' })
     const usage = { promptTokens: reply.inputTokens, completionTokens: reply.outputTokens, embeddingTokens: 0, llmRequests: 1 }
@@ -208,7 +210,12 @@ export function buildAgentGraph(deps: AgentDeps) {
       }
     }
     if (result.action === 'clarify') {
-      return { update: { usage, clarification: { question: result.question, options: result.options } }, detail: { action: 'clarify' } }
+      // The user's answer replaces any pending review feedback (e.g. a zero-row
+      // date-range review that asked which period to use).
+      return {
+        update: { usage, lastError: null, clarification: { question: result.question, options: result.options } },
+        detail: { action: 'clarify' },
+      }
     }
     return { update: { usage, outcome: { status: 'cannot_answer', reason: result.reason } }, detail: { action: 'cannot_answer' } }
   })
@@ -222,6 +229,8 @@ export function buildAgentGraph(deps: AgentDeps) {
         clarification: null,
         clarificationsUsed: state.clarificationsUsed + 1,
         clarificationAnswers: [...state.clarificationAnswers, { question: request.question, answer }],
+        // A clarification after the date-range lookup is the user's choice of period (12.3).
+        ...(state.dataRange !== null ? { periodChoice: answer } : {}),
       },
     })
   })
@@ -289,8 +298,16 @@ export function buildAgentGraph(deps: AgentDeps) {
     const review =
       result.rowCount === 0 && state.flags.selfCorrection && !state.zeroRowReviewDone && state.attempts < maxAttempts(state)
     if (review) {
-      // Zero rows: back to generate once with a re-check instruction (12.3).
-      return { update: { result: meta, zeroRowReviewDone: true, lastError: { sql: candidateSql, problem: ZERO_ROW_REVIEW } }, detail }
+      // Zero rows: back to generate once with a re-check instruction (12.3). When the
+      // SQL filters on a date column, its actual range goes with the instruction.
+      const retrieved = requireValue(state.retrieved, 'retrieved context')
+      const dataRange = await lookUpDataRange(candidateSql, retrieved.tables, context(state))
+      const clarifyAllowed = state.clarificationsUsed < env.MAX_CLARIFICATIONS
+      const problem = dataRange === null ? ZERO_ROW_REVIEW : zeroRowReviewWithRange(dataRange, clarifyAllowed)
+      return {
+        update: { result: meta, zeroRowReviewDone: true, dataRange, lastError: { sql: candidateSql, problem } },
+        detail: dataRange === null ? detail : { ...detail, dataRange },
+      }
     }
     return { update: { result: meta }, detail }
   })
@@ -305,14 +322,18 @@ export function buildAgentGraph(deps: AgentDeps) {
     const meta = requireValue(state.result, 'result')
     const rows = deps.rows.get(state.questionId)
     if (rows === undefined) throw new Error('Result rows are not available for the answer step')
+    const candidate = requireValue(state.candidate, 'SQL candidate')
     const reply = await deps.llm.chat(
       buildAnswerMessages({
         question: state.question,
-        sql: requireValue(state.candidate, 'SQL candidate').sql,
+        sql: candidate.sql,
         columns: meta.columns.map((c) => c.name),
         rows,
         rowCount: meta.rowCount,
         truncated: meta.truncated,
+        dataRange: state.dataRange,
+        assumptions: candidate.assumptions,
+        periodChoice: state.periodChoice,
       }),
       { source: state.source, model: 'answer' },
     )
