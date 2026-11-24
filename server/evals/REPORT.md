@@ -1,5 +1,7 @@
 # QueryCraft evaluation report
 
+> **Note (2026-11-24):** these results predate the zero-row date-range check and its clarification for periods outside the data (IMPLEMENTATION.md 12.3, NOTES.md D99, D103) and the concrete clarify-options rule in the generate prompt (NOTES.md D101). Runs that hit a zero-row result with a date filter, and ambiguous items, may behave differently now; the evaluation was not re-run (user decision). A future `eval:run` regenerates this file without this note.
+
 Generated 2026-11-16 13:14 UTC by `pnpm eval:run` from its run files (`server/evals/reports/<runId>-<config>.jsonl` for real runs). Results are reported as measured; there is no accuracy target (IMPLEMENTATION.md section 20).
 
 Execution accuracy: the gold SQL and the generated SQL are both executed through the safety pipeline, and their rows are compared as multisets (in order only when an item says order matters), with numbers rounded to 2 decimals, column names ignored and the column count required to match. Each configuration shows its newest complete run.

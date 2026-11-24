@@ -34,7 +34,7 @@ Measured on 2026-11-14 and 2026-11-16 (`server/evals/REPORT.md`), with test coun
 | SQL safety test cases | 213 malicious, 71 safe |
 | Prompt tokens per question, with retrieval | 2,274 on average (all LLM calls of a question) |
 | Full-schema SQL prompt, for comparison | about 7,263 tokens (character-count estimate; not run) |
-| Automated tests | 1,020 (860 server, 160 client) |
+| Automated tests | 1,064 (893 server, 171 client) |
 
 Everything runs on free tiers: Groq for chat, Google Gemini for embeddings.
 
